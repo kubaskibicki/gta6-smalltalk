@@ -143,11 +143,7 @@ Object subclass: LocationsConnection [
 
 Object subclass: Game [
     |
-      "Game state."
-      isGameOver
-      current_mission
-      location
-      has
+
 
       "Mission progress."
       drill_mission
@@ -159,6 +155,7 @@ Object subclass: Game [
       barrow
 
       "Places"
+      lobby
       construction_site_south_gate
       construction_site
       containers
@@ -174,6 +171,12 @@ Object subclass: Game [
 
       worker
       supervisor
+
+      "Game state."
+      isGameOver
+      current_mission
+      location
+      has
     |
 
     introductionText := #(
@@ -212,14 +215,7 @@ Object subclass: Game [
     ]
 
     init [
-        "Game state."
-        isGameOver := false.
-        current_mission := 'none'.
 
-        location := Location new.
-        location name: 'lobby'.
-
-        has := 'nothing'.
 
         "Obtainable."
         drill := Obtainable new.
@@ -229,25 +225,52 @@ Object subclass: Game [
         barrow name: 'barrow'.
 
         "Places."
+        lobby := Location new.
+        lobby name: 'lobby'.
+        lobby description: #(
+            'You are currently in the lobby.'
+            'You can either start unfinished mission or finish the game from here.'
+            ''
+        ).
+
         construction_site_south_gate := Location new.
         construction_site_south_gate name: 'construction_site_south_gate'.
-        construction_site_south_gate description: 'Hello gate'.
+        construction_site_south_gate description: #(
+            'You are in front of south gate of a construction site.'
+            'There is a supervisor next to you. You can talk with him.'
+            'On the construction site at north, there are workers in a building'
+            'and containers with various construction equipment. Find the drill.'
+            ''
+        ).
         construction_site_south_gate addThing: drill.
         construction_site_south_gate addThing: barrow.
 
         construction_site := Location new.
         construction_site name: 'construction_site'.
-        construction_site description: 'Hello gate'.
+        construction_site description: #(
+            'You entered construction site area.'
+            'There is a row of colorful containers to your right site.'
+            'You can also take a closer look at construction workers.'
+            ''
+        ).
         construction_site addThing: barrow.
 
         containers := Location new.
         containers name: 'containers'.
-        containers description: 'Hello gate'.
+        containers description: #(
+            'You are now standing in front of a row of containers.'
+            ''
+        ).
         containers addThing: drill.
 
         construction_site_east_gate := Location new.
         construction_site_east_gate name: 'construction_site_east_gate'.
-        construction_site_east_gate description: 'Hello gate'.
+        construction_site_east_gate description: #(
+            'You reached the east gate of the construction site.'
+            'There''s not much here, but this place seems like'
+            'another escape point'
+            ''
+        ).
 
         "Mission progress."
         drill_mission := Mission new.
@@ -315,6 +338,14 @@ Object subclass: Game [
         worker
             name: 'worker';
             message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
+
+        "Game state."
+        isGameOver := false.
+        current_mission := 'none'.
+
+        location := lobby.
+
+        has := 'nothing'.
     ]
 
     "Print strings from array in separate lines."
@@ -361,6 +392,12 @@ Object subclass: Game [
                 location := connection newLocation.
                 Transcript show: 'You moved to: ', location name; cr; cr
             ].
+    ]
+
+
+
+    look [
+        self printLines: location description
     ]
 
     ask: aNpc [
@@ -449,10 +486,30 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
-            cmd = 'n' ifTrue: [ self move: 'n'. isUnknown := false ].
-            cmd = 's' ifTrue: [ self move: 's'. isUnknown := false ].
-            cmd = 'w' ifTrue: [ self move: 'w'. isUnknown := false ].
-            cmd = 'e' ifTrue: [ self move: 'e'. isUnknown := false ].
+            cmd = 'look' ifTrue: [
+                self look.
+                isUnknown := false
+            ].
+
+            cmd = 'n' ifTrue: [
+                self move: 'n'.
+                isUnknown := false
+            ].
+
+            cmd = 's' ifTrue: [
+                self move: 's'.
+                isUnknown := false
+            ].
+
+            cmd = 'w' ifTrue: [
+                self move: 'w'.
+                isUnknown := false
+            ].
+
+            cmd = 'e' ifTrue: [
+                self move: 'e'.
+                isUnknown := false
+            ].
 
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '')
@@ -461,5 +518,6 @@ Object subclass: Game [
     ]
 ].
 
-"===== Now run the game, outside the class definition ====="
 Game new run.
+
+
