@@ -1,3 +1,35 @@
+Object subclass: Npc [
+    | name location message |
+
+    name: aName [
+        name := aName
+    ]
+
+    npcLocation: aLocation [
+        location := aLocation
+    ]
+
+    message: aMessage [
+        message := aMessage
+    ]
+
+    name [
+        ^ name
+    ]
+
+    npcLocation [
+        ^ location
+    ]
+
+    message [
+        ^ message
+    ]
+
+
+]
+
+
+
 Object subclass: Location [
     | location |
 
@@ -8,7 +40,7 @@ Object subclass: Location [
 
     "getter"
     location [
-        ^location
+        ^ location
     ]
 ]
 
@@ -43,12 +75,16 @@ Object subclass: LocationsConnection [
 Object subclass: Game [
     | isGameOver
       location
+
       construction_site_south_gate_N_construction_site
       construction_site_S_construction_site_south_gate
       construction_site_E_containers
       containers_W_construction_site
       containers_E_construction_site_east_gate
       construction_site_east_gate_W_containers
+
+      worker
+      supervisor
     |
 
     introductionText := #(
@@ -83,44 +119,63 @@ Object subclass: Game [
         | g |
         g := super new.
         g init.
-        ^g
+        ^ g
     ]
 
     init [
         isGameOver := false.
-        location := 'construction_site_south_gate'.
 
-        "polaczenia"
+        "Najpierw sie robi obiekt klasy location, potem wywolywany jest setter, stad taka dziwna konstrukcja."
+        location := Location new.
+        location location: 'construction_site_south_gate'.
+
         construction_site_south_gate_N_construction_site := LocationsConnection new.
-        construction_site_south_gate_N_construction_site currentLocation: 'construction_site_south_gate'.
-        construction_site_south_gate_N_construction_site direction: 'n'.
-        construction_site_south_gate_N_construction_site newLocation: 'construction_site'.
+        construction_site_south_gate_N_construction_site
+            currentLocation: (Location new location: 'construction_site_south_gate');
+            direction: 'n';
+            newLocation: (Location new location: 'construction_site').
 
         construction_site_S_construction_site_south_gate := LocationsConnection new.
-        construction_site_S_construction_site_south_gate currentLocation: 'construction_site'.
-        construction_site_S_construction_site_south_gate direction: 's'.
-        construction_site_S_construction_site_south_gate newLocation: 'construction_site_south_gate'.
+        construction_site_S_construction_site_south_gate
+            currentLocation: (Location new location: 'construction_site');
+            direction: 's';
+            newLocation: (Location new location: 'construction_site_south_gate').
 
         construction_site_E_containers := LocationsConnection new.
-        construction_site_E_containers currentLocation: 'construction_site'.
-        construction_site_E_containers direction: 'e'.
-        construction_site_E_containers newLocation: 'containers'.
+        construction_site_E_containers
+            currentLocation: (Location new location: 'construction_site');
+            direction: 'e';
+            newLocation: (Location new location: 'containers').
 
         containers_W_construction_site := LocationsConnection new.
-        containers_W_construction_site currentLocation: 'containers'.
-        containers_W_construction_site direction: 'w'.
-        containers_W_construction_site newLocation: 'construction_site'.
+        containers_W_construction_site
+            currentLocation: (Location new location: 'containers');
+            direction: 'w';
+            newLocation: (Location new location: 'construction_site').
 
         containers_E_construction_site_east_gate := LocationsConnection new.
-        containers_E_construction_site_east_gate currentLocation: 'containers'.
-        containers_E_construction_site_east_gate direction: 'e'.
-        containers_E_construction_site_east_gate newLocation: 'construction_site_east_gate'.
+        containers_E_construction_site_east_gate
+            currentLocation: (Location new location: 'containers');
+            direction: 'e';
+            newLocation: (Location new location: 'construction_site_east_gate').
 
         construction_site_east_gate_W_containers := LocationsConnection new.
-        construction_site_east_gate_W_containers currentLocation: 'construction_site_east_gate'.
-        construction_site_east_gate_W_containers direction: 'w'.
-        construction_site_east_gate_W_containers newLocation: 'containers'.
+        construction_site_east_gate_W_containers
+            currentLocation: (Location new location: 'construction_site_east_gate');
+            direction: 'w';
+            newLocation: (Location new location: 'containers').
 
+        supervisor := Npc new.
+        supervisor
+            name: 'supervisor';
+            npcLocation: (Location new location: 'construction_site_south_gate');
+            message: 'Hey how are you? It''s beautiful weather out there isn''t it?'.
+
+        worker := Npc new.
+        worker
+            name: 'worker';
+            npcLocation: (Location new location: 'construction_site');
+            message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
     ]
 
     "Print strings from array in separate lines."
@@ -129,11 +184,11 @@ Object subclass: Game [
     ]
 
     printIntroduction [
-       self printLines: introductionText.
+       self printLines: introductionText
     ]
 
     printInstructions [
-        self printLines: instructionsText.
+        self printLines: instructionsText
     ]
 
     readCommand [
@@ -144,18 +199,19 @@ Object subclass: Game [
     move: aDirection [
         | possibleConnections connection |
 
-        possibleConnections := { construction_site_S_construction_site_south_gate.
-                                 construction_site_south_gate_N_construction_site.
-                                 construction_site_E_containers.
-                                 containers_W_construction_site.
-                                 containers_E_construction_site_east_gate.
-                                 construction_site_east_gate_W_containers}.
+        possibleConnections := {
+            construction_site_S_construction_site_south_gate.
+            construction_site_south_gate_N_construction_site.
+            construction_site_E_containers.
+            containers_W_construction_site.
+            containers_E_construction_site_east_gate.
+            construction_site_east_gate_W_containers
+        }.
 
         connection := possibleConnections
             detect: [ :c |
-                c currentLocation = location and: [
-                    c direction = aDirection
-                ]
+                c currentLocation location = location location
+                    and: [ c direction = aDirection ]
             ]
             ifNone: [ nil ].
 
@@ -165,22 +221,53 @@ Object subclass: Game [
             ]
             ifNotNil: [
                 location := connection newLocation.
-                Transcript cr; show: 'You moved to: ', location; cr.
+                Transcript show: 'You moved to: ', location location; cr; cr
             ].
     ]
 
+    ask: aNpc [
+    | allNpcs npc |
+
+    allNpcs := {
+        supervisor.
+        worker
+    }.
+
+    npc := allNpcs
+        detect: [ :c |
+            c npcLocation location = location location
+                and: [ c name = aNpc ]
+        ]
+        ifNone: [ nil ].
+
+    npc
+        ifNil: [
+            self printLines: #('There is no such person here.' '')
+        ]
+        ifNotNil: [
+            Transcript show: npc message; cr; cr
+        ].
+    ]
+
+
     "Run the game."
     run [
-        | cmd isUnknown |
+        | cmd isUnknown parts secondArgument |
 
         self printIntroduction.
         self printInstructions.
 
         "Game loop."
         [ isGameOver ] whileFalse: [
-
             isUnknown := true.
             cmd := self readCommand.
+            parts := cmd subStrings: ' '.
+
+            (parts size = 2 and: [ parts first = 'ask' ]) ifTrue: [
+                secondArgument := parts second.
+                self ask: secondArgument.
+                isUnknown := false
+            ].
 
             cmd = 'instructions' ifTrue: [
                 self printInstructions.
@@ -192,16 +279,29 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
-            cmd = 'n' ifTrue: [ self move: 'n'. isUnknown := false ].
-            cmd = 's' ifTrue: [ self move: 's'. isUnknown := false ].
-            cmd = 'w' ifTrue: [ self move: 'w'. isUnknown := false ].
-            cmd = 'e' ifTrue: [ self move: 'e'. isUnknown := false ].
+            cmd = 'n' ifTrue: [
+                self move: 'n'.
+                isUnknown := false
+            ].
+            cmd = 's' ifTrue: [
+                self move: 's'.
+                isUnknown := false
+            ].
+            cmd = 'w' ifTrue: [
+                self move: 'w'.
+                isUnknown := false
+            ].
+            cmd = 'e' ifTrue: [
+                self move: 'e'.
+                isUnknown := false
+            ].
 
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '')
             ]
         ]
     ]
+
 ]
 
 Game new run.
