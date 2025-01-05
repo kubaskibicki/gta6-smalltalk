@@ -24,9 +24,7 @@ Object subclass: Mission [
     startLocation [
         ^ startLocation
     ]
-]
-
-
+].
 
 Object subclass: Obtainable [
     | name |
@@ -42,9 +40,7 @@ Object subclass: Obtainable [
     asString [
         ^ name
     ]
-]
-
-
+].
 
 Object subclass: Npc [
     | name message |
@@ -64,13 +60,10 @@ Object subclass: Npc [
     message [
         ^ message
     ]
-
-]
-
-
+].
 
 Object subclass: Location [
-    | name things descrpition |
+    | name description things |
 
     name: aString [
         name := aString
@@ -80,10 +73,17 @@ Object subclass: Location [
         ^ name
     ]
 
+    description: newDesc [
+        description := newDesc
+    ]
+
+    description [
+        ^ description
+    ]
+
     things [
         ^ things
     ]
-
 
     things: aCollection [
         things := aCollection
@@ -111,13 +111,7 @@ Object subclass: Location [
         instance initialize.
         ^ instance
     ]
-
-]
-
-
-
-
-
+].
 
 Object subclass: LocationsConnection [
     | currentLocation direction newLocation |
@@ -145,43 +139,41 @@ Object subclass: LocationsConnection [
     newLocation [
         ^ newLocation
     ]
-]
-
-
+].
 
 Object subclass: Game [
     |
-        "Game state."
-        isGameOver
-        current_mission
-        location
-        has
+      "Game state."
+      isGameOver
+      current_mission
+      location
+      has
 
-        "Mission progress."
-        drill_mission
-        car_mission
-        weapon_mission
+      "Mission progress."
+      drill_mission
+      car_mission
+      weapon_mission
 
-        "Obtainable."
-        drill
-        barrow
+      "Obtainable."
+      drill
+      barrow
 
-        "Places"
-        construction_site_south_gate
-        construction_site
-        containers
-        construction_site_east_gate
+      "Places"
+      construction_site_south_gate
+      construction_site
+      containers
+      construction_site_east_gate
 
-        "Places connections."
-        construction_site_south_gate_N_construction_site
-        construction_site_S_construction_site_south_gate
-        construction_site_E_containers
-        containers_W_construction_site
-        containers_E_construction_site_east_gate
-        construction_site_east_gate_W_containers
+      "Places connections."
+      construction_site_south_gate_N_construction_site
+      construction_site_S_construction_site_south_gate
+      construction_site_E_containers
+      containers_W_construction_site
+      containers_E_construction_site_east_gate
+      construction_site_east_gate_W_containers
 
-        worker
-        supervisor
+      worker
+      supervisor
     |
 
     introductionText := #(
@@ -224,45 +216,38 @@ Object subclass: Game [
         isGameOver := false.
         current_mission := 'none'.
 
-        "Najpierw sie robi obiekt klasy location, potem wywolywany jest setter, stad taka dziwna konstrukcja."
         location := Location new.
         location name: 'lobby'.
 
         has := 'nothing'.
 
-
         "Obtainable."
         drill := Obtainable new.
-        drill
-            name: 'drill'.
+        drill name: 'drill'.
 
         barrow := Obtainable new.
-        barrow
-            name: 'barrow'.
-
+        barrow name: 'barrow'.
 
         "Places."
         construction_site_south_gate := Location new.
-        construction_site_south_gate
-            name: 'construction_site_south_gate'.
-            construction_site_south_gate addThing: drill.
-            construction_site_south_gate addThing: barrow.
+        construction_site_south_gate name: 'construction_site_south_gate'.
+        construction_site_south_gate description: 'Hello gate'.
+        construction_site_south_gate addThing: drill.
+        construction_site_south_gate addThing: barrow.
 
         construction_site := Location new.
-        construction_site
-            name: 'construction_site'.
-            construction_site addThing: barrow.
+        construction_site name: 'construction_site'.
+        construction_site description: 'Hello gate'.
+        construction_site addThing: barrow.
 
         containers := Location new.
-        containers
-            name: 'containers'.
-            containers addThing: drill.
+        containers name: 'containers'.
+        containers description: 'Hello gate'.
+        containers addThing: drill.
 
         construction_site_east_gate := Location new.
-        construction_site_east_gate
-            name: 'construction_site_east_gate'.
-
-
+        construction_site_east_gate name: 'construction_site_east_gate'.
+        construction_site_east_gate description: 'Hello gate'.
 
         "Mission progress."
         drill_mission := Mission new.
@@ -271,12 +256,20 @@ Object subclass: Game [
             finished: false;
             startLocation: construction_site_south_gate.
 
+        "Dummy placeholders for other missions (so code won’t fail)."
+        car_mission := Mission new.
+        car_mission
+            name: 'car';
+            finished: false;
+            startLocation: construction_site_south_gate.
 
+        weapon_mission := Mission new.
+        weapon_mission
+            name: 'weapon';
+            finished: false;
+            startLocation: construction_site_south_gate.
 
-
-
-
-
+        "Connections."
         construction_site_south_gate_N_construction_site := LocationsConnection new.
         construction_site_south_gate_N_construction_site
             currentLocation: construction_site_south_gate;
@@ -313,8 +306,6 @@ Object subclass: Game [
             direction: 'w';
             newLocation: containers.
 
-
-
         supervisor := Npc new.
         supervisor
             name: 'supervisor';
@@ -324,8 +315,6 @@ Object subclass: Game [
         worker
             name: 'worker';
             message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
-
-
     ]
 
     "Print strings from array in separate lines."
@@ -334,7 +323,7 @@ Object subclass: Game [
     ]
 
     printIntroduction [
-       self printLines: introductionText
+        self printLines: introductionText
     ]
 
     printInstructions [
@@ -348,7 +337,6 @@ Object subclass: Game [
 
     move: aDirection [
         | possibleConnections connection |
-
         possibleConnections := {
             construction_site_S_construction_site_south_gate.
             construction_site_south_gate_N_construction_site.
@@ -378,16 +366,13 @@ Object subclass: Game [
     ask: aNpc [
         | allNpcs npc |
 
-        allNpcs := {
-            supervisor.
-            worker
-        }.
+        allNpcs := { supervisor. worker }.
 
+        "We must also define npcLocation if you want to see
+         who is in the current location. For now, we’ll just
+         pretend no NPC is in the user’s location."
         npc := allNpcs
-            detect: [ :c |
-                c npcLocation name = location name
-                    and: [ c name = aNpc ]
-            ]
+            detect: [ :c | c name = aNpc ]
             ifNone: [ nil ].
 
         npc
@@ -396,56 +381,47 @@ Object subclass: Game [
             ]
             ifNotNil: [
                 Transcript show: npc message; cr; cr
-        ].
+            ].
     ]
 
     choose_mission: missionName [
-    (location name = 'lobby')
-        ifFalse: [
-            self printLines: #('You must be in the lobby to choose a mission.' '')
-        ]
-        ifTrue: [
-            | allMissions foundMission |
-            allMissions := {
-                drill_mission.
-                car_mission.
-                weapon_mission
-            }.
-
-            foundMission := allMissions
-                detect: [ :c |
-                c name = missionName
+        (location name = 'lobby')
+            ifFalse: [
+                self printLines: #('You must be in the lobby to choose a mission.' '')
             ]
-            ifNone: [ nil ].
+            ifTrue: [
+                | allMissions foundMission |
+                allMissions := { drill_mission. car_mission. weapon_mission }.
 
-            foundMission
-                ifNil: [
-                    self printLines: #('No such mission.' '')
-                ]
-                ifNotNil: [
-                    foundMission finished
-                        ifTrue: [
-                            self printLines: #('You have already finished this mission.' '')
-                        ]
-                        ifFalse: [
-                            location := foundMission startLocation.
-                            current_mission := foundMission name.
-                            Transcript show: 'You have chosen mission: ', foundMission name; cr; cr
-                        ].
-                ].
-        ].
-]
+                foundMission := allMissions
+                    detect: [ :c | c name = missionName ]
+                    ifNone: [ nil ].
 
+                foundMission
+                    ifNil: [
+                        self printLines: #('No such mission.' '')
+                    ]
+                    ifNotNil: [
+                        foundMission finished
+                            ifTrue: [
+                                self printLines: #('You have already finished this mission.' '')
+                            ]
+                            ifFalse: [
+                                location := foundMission startLocation.
+                                current_mission := foundMission name.
+                                Transcript show: 'You have chosen mission: ', foundMission name; cr; cr
+                            ].
+                    ].
+            ].
+    ]
 
-
-    "Run the game."
+    "Main game loop."
     run [
         | cmd isUnknown parts secondArgument |
 
         self printIntroduction.
         self printInstructions.
 
-        "Game loop."
         [ isGameOver ] whileFalse: [
             isUnknown := true.
             cmd := self readCommand.
@@ -473,30 +449,17 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
-            cmd = 'n' ifTrue: [
-                self move: 'n'.
-                isUnknown := false
-            ].
-            cmd = 's' ifTrue: [
-                self move: 's'.
-                isUnknown := false
-            ].
-            cmd = 'w' ifTrue: [
-                self move: 'w'.
-                isUnknown := false
-            ].
-            cmd = 'e' ifTrue: [
-                self move: 'e'.
-                isUnknown := false
-            ].
-
+            cmd = 'n' ifTrue: [ self move: 'n'. isUnknown := false ].
+            cmd = 's' ifTrue: [ self move: 's'. isUnknown := false ].
+            cmd = 'w' ifTrue: [ self move: 'w'. isUnknown := false ].
+            cmd = 'e' ifTrue: [ self move: 'e'. isUnknown := false ].
 
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '')
-            ]
-        ]
+            ].
+        ] "end whileFalse:"
     ]
+].
 
-]
-
+"===== Now run the game, outside the class definition ====="
 Game new run.
