@@ -28,15 +28,29 @@ Object subclass: Mission [
 
 
 
-Object subclass: Npc [
-    | name location message |
+Object subclass: Obtainable [
+    | name |
 
     name: aName [
         name := aName
     ]
 
-    npcLocation: aLocation [
-        location := aLocation
+    name [
+        ^ name
+    ]
+
+    asString [
+        ^ name
+    ]
+]
+
+
+
+Object subclass: Npc [
+    | name message |
+
+    name: aName [
+        name := aName
     ]
 
     message: aMessage [
@@ -47,31 +61,63 @@ Object subclass: Npc [
         ^ name
     ]
 
-    npcLocation [
-        ^ location
-    ]
-
     message [
         ^ message
     ]
 
-
 ]
+
 
 
 Object subclass: Location [
-    | location |
+    | name things descrpition |
 
-    "setter"
-    location: aString [
-        location := aString
+    name: aString [
+        name := aString
     ]
 
-    "getter"
-    location [
-        ^ location
+    name [
+        ^ name
     ]
+
+    things [
+        ^ things
+    ]
+
+
+    things: aCollection [
+        things := aCollection
+    ]
+
+    initialize [
+        things := OrderedCollection new.
+    ]
+
+    addThing: anObtainable [
+        things add: anObtainable
+    ]
+
+    removeThing: anObtainable [
+        things remove: anObtainable ifAbsent: [].
+    ]
+
+    listThings [
+        ^ things ifNil: [ #() ] ifNotNil: [ things asArray ].
+    ]
+
+    Location class >> new [
+        | instance |
+        instance := super new.
+        instance initialize.
+        ^ instance
+    ]
+
 ]
+
+
+
+
+
 
 Object subclass: LocationsConnection [
     | currentLocation direction newLocation |
@@ -101,16 +147,32 @@ Object subclass: LocationsConnection [
     ]
 ]
 
-Object subclass: Game [
-    | isGameOver
 
+
+Object subclass: Game [
+    |
+        "Game state."
+        isGameOver
+        current_mission
+        location
+        has
+
+        "Mission progress."
         drill_mission
         car_mission
         weapon_mission
 
-        current_mission
-        location
+        "Obtainable."
+        drill
+        barrow
 
+        "Places"
+        construction_site_south_gate
+        construction_site
+        containers
+        construction_site_east_gate
+
+        "Places connections."
         construction_site_south_gate_N_construction_site
         construction_site_S_construction_site_south_gate
         construction_site_E_containers
@@ -158,78 +220,112 @@ Object subclass: Game [
     ]
 
     init [
+        "Game state."
         isGameOver := false.
         current_mission := 'none'.
 
         "Najpierw sie robi obiekt klasy location, potem wywolywany jest setter, stad taka dziwna konstrukcja."
         location := Location new.
-        location location: 'lobby'.
+        location name: 'lobby'.
+
+        has := 'nothing'.
+
+
+        "Obtainable."
+        drill := Obtainable new.
+        drill
+            name: 'drill'.
+
+        barrow := Obtainable new.
+        barrow
+            name: 'barrow'.
+
+
+        "Places."
+        construction_site_south_gate := Location new.
+        construction_site_south_gate
+            name: 'construction_site_south_gate'.
+            construction_site_south_gate addThing: drill.
+            construction_site_south_gate addThing: barrow.
+
+        construction_site := Location new.
+        construction_site
+            name: 'construction_site'.
+            construction_site addThing: barrow.
+
+        containers := Location new.
+        containers
+            name: 'containers'.
+            containers addThing: drill.
+
+        construction_site_east_gate := Location new.
+        construction_site_east_gate
+            name: 'construction_site_east_gate'.
+
+
+
+        "Mission progress."
+        drill_mission := Mission new.
+        drill_mission
+            name: 'drill';
+            finished: false;
+            startLocation: construction_site_south_gate.
+
+
+
+
+
+
 
         construction_site_south_gate_N_construction_site := LocationsConnection new.
         construction_site_south_gate_N_construction_site
-            currentLocation: (Location new location: 'construction_site_south_gate');
+            currentLocation: construction_site_south_gate;
             direction: 'n';
-            newLocation: (Location new location: 'construction_site').
+            newLocation: construction_site.
 
         construction_site_S_construction_site_south_gate := LocationsConnection new.
         construction_site_S_construction_site_south_gate
-            currentLocation: (Location new location: 'construction_site');
+            currentLocation: construction_site;
             direction: 's';
-            newLocation: (Location new location: 'construction_site_south_gate').
+            newLocation: construction_site_south_gate.
 
         construction_site_E_containers := LocationsConnection new.
         construction_site_E_containers
-            currentLocation: (Location new location: 'construction_site');
+            currentLocation: construction_site;
             direction: 'e';
-            newLocation: (Location new location: 'containers').
+            newLocation: containers.
 
         containers_W_construction_site := LocationsConnection new.
         containers_W_construction_site
-            currentLocation: (Location new location: 'containers');
+            currentLocation: containers;
             direction: 'w';
-            newLocation: (Location new location: 'construction_site').
+            newLocation: construction_site.
 
         containers_E_construction_site_east_gate := LocationsConnection new.
         containers_E_construction_site_east_gate
-            currentLocation: (Location new location: 'containers');
+            currentLocation: containers;
             direction: 'e';
-            newLocation: (Location new location: 'construction_site_east_gate').
+            newLocation: construction_site_east_gate.
 
         construction_site_east_gate_W_containers := LocationsConnection new.
         construction_site_east_gate_W_containers
-            currentLocation: (Location new location: 'construction_site_east_gate');
+            currentLocation: construction_site_east_gate;
             direction: 'w';
-            newLocation: (Location new location: 'containers').
+            newLocation: containers.
+
+
 
         supervisor := Npc new.
         supervisor
             name: 'supervisor';
-            npcLocation: (Location new location: 'construction_site_south_gate');
             message: 'Hey how are you? It''s beautiful weather out there isn''t it?'.
 
         worker := Npc new.
         worker
             name: 'worker';
-            npcLocation: (Location new location: 'construction_site');
             message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
 
-        drill_mission := Mission new.
-        drill_mission
-            name: 'drill';
-            finished: false;
-            startLocation: (Location new location: 'construction_site_south_gate').
 
-        car_mission := Mission new.
-        car_mission
-            name: 'car';
-            finished: false;
-            startLocation: (Location new location: 'vinewood_hills').
-
-        weapon_mission := Mission new.
-        weapon_mission
-            name: 'weapon';
-            finished: false;
-            startLocation: (Location new location: 'gang_hideout').
     ]
 
     "Print strings from array in separate lines."
@@ -264,7 +360,7 @@ Object subclass: Game [
 
         connection := possibleConnections
             detect: [ :c |
-                c currentLocation location = location location
+                c currentLocation name = location name
                     and: [ c direction = aDirection ]
             ]
             ifNone: [ nil ].
@@ -275,7 +371,7 @@ Object subclass: Game [
             ]
             ifNotNil: [
                 location := connection newLocation.
-                Transcript show: 'You moved to: ', location location; cr; cr
+                Transcript show: 'You moved to: ', location name; cr; cr
             ].
     ]
 
@@ -289,7 +385,7 @@ Object subclass: Game [
 
         npc := allNpcs
             detect: [ :c |
-                c npcLocation location = location location
+                c npcLocation name = location name
                     and: [ c name = aNpc ]
             ]
             ifNone: [ nil ].
@@ -304,7 +400,7 @@ Object subclass: Game [
     ]
 
     choose_mission: missionName [
-    (location location = 'lobby')
+    (location name = 'lobby')
         ifFalse: [
             self printLines: #('You must be in the lobby to choose a mission.' '')
         ]
