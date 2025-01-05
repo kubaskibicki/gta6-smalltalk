@@ -1,3 +1,33 @@
+Object subclass: Mission [
+    | name finished startLocation |
+
+    name: aName [
+        name := aName
+    ]
+
+    finished: aBoolean [
+        finished := aBoolean
+    ]
+
+    startLocation: aLocation [
+        startLocation := aLocation
+    ]
+
+    name [
+        ^ name
+    ]
+
+    finished [
+        ^ finished
+    ]
+
+    startLocation [
+        ^ startLocation
+    ]
+]
+
+
+
 Object subclass: Npc [
     | name location message |
 
@@ -27,7 +57,6 @@ Object subclass: Npc [
 
 
 ]
-
 
 
 Object subclass: Location [
@@ -74,17 +103,22 @@ Object subclass: LocationsConnection [
 
 Object subclass: Game [
     | isGameOver
-      location
 
-      construction_site_south_gate_N_construction_site
-      construction_site_S_construction_site_south_gate
-      construction_site_E_containers
-      containers_W_construction_site
-      containers_E_construction_site_east_gate
-      construction_site_east_gate_W_containers
+        drill_mission
+        car_mission
+        weapon_mission
 
-      worker
-      supervisor
+        location
+
+        construction_site_south_gate_N_construction_site
+        construction_site_S_construction_site_south_gate
+        construction_site_E_containers
+        containers_W_construction_site
+        containers_E_construction_site_east_gate
+        construction_site_east_gate_W_containers
+
+        worker
+        supervisor
     |
 
     introductionText := #(
@@ -176,6 +210,24 @@ Object subclass: Game [
             name: 'worker';
             npcLocation: (Location new location: 'construction_site');
             message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
+
+        drill_mission := Mission new.
+        drill_mission
+            name: 'drill';
+            finished: false;
+            startLocation: (Location new location: 'construction_site_south_gate').
+
+        car_mission := Mission new.
+        car_mission
+            name: 'car';
+            finished: false;
+            startLocation: (Location new location: 'vinewood_hills').
+
+        weapon_mission := Mission new.
+        weapon_mission
+            name: 'weapon';
+            finished: false;
+            startLocation: (Location new location: 'gang_hideout').
     ]
 
     "Print strings from array in separate lines."
