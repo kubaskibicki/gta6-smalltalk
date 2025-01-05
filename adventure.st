@@ -108,6 +108,7 @@ Object subclass: Game [
         car_mission
         weapon_mission
 
+        current_mission
         location
 
         construction_site_south_gate_N_construction_site
@@ -158,10 +159,11 @@ Object subclass: Game [
 
     init [
         isGameOver := false.
+        current_mission := 'none'.
 
         "Najpierw sie robi obiekt klasy location, potem wywolywany jest setter, stad taka dziwna konstrukcja."
         location := Location new.
-        location location: 'construction_site_south_gate'.
+        location location: 'lobby'.
 
         construction_site_south_gate_N_construction_site := LocationsConnection new.
         construction_site_south_gate_N_construction_site
@@ -278,28 +280,66 @@ Object subclass: Game [
     ]
 
     ask: aNpc [
-    | allNpcs npc |
+        | allNpcs npc |
 
-    allNpcs := {
-        supervisor.
-        worker
-    }.
+        allNpcs := {
+            supervisor.
+            worker
+        }.
 
-    npc := allNpcs
-        detect: [ :c |
-            c npcLocation location = location location
-                and: [ c name = aNpc ]
-        ]
-        ifNone: [ nil ].
+        npc := allNpcs
+            detect: [ :c |
+                c npcLocation location = location location
+                    and: [ c name = aNpc ]
+            ]
+            ifNone: [ nil ].
 
-    npc
-        ifNil: [
-            self printLines: #('There is no such person here.' '')
-        ]
-        ifNotNil: [
-            Transcript show: npc message; cr; cr
+        npc
+            ifNil: [
+                self printLines: #('There is no such person here.' '')
+            ]
+            ifNotNil: [
+                Transcript show: npc message; cr; cr
         ].
     ]
+
+    choose_mission: missionName [
+    (location location = 'lobby')
+        ifFalse: [
+            self printLines: #('You must be in the lobby to choose a mission.' '')
+        ]
+        ifTrue: [
+            | allMissions foundMission |
+            allMissions := {
+                drill_mission.
+                car_mission.
+                weapon_mission
+            }.
+
+            foundMission := allMissions
+                detect: [ :c |
+                c name = missionName
+            ]
+            ifNone: [ nil ].
+
+            foundMission
+                ifNil: [
+                    self printLines: #('No such mission.' '')
+                ]
+                ifNotNil: [
+                    foundMission finished
+                        ifTrue: [
+                            self printLines: #('You have already finished this mission.' '')
+                        ]
+                        ifFalse: [
+                            location := foundMission startLocation.
+                            current_mission := foundMission name.
+                            Transcript show: 'You have chosen mission: ', foundMission name; cr; cr
+                        ].
+                ].
+        ].
+]
+
 
 
     "Run the game."
@@ -318,6 +358,12 @@ Object subclass: Game [
             (parts size = 2 and: [ parts first = 'ask' ]) ifTrue: [
                 secondArgument := parts second.
                 self ask: secondArgument.
+                isUnknown := false
+            ].
+
+            (parts size = 2 and: [ parts first = 'choose_mission' ]) ifTrue: [
+                secondArgument := parts second.
+                self choose_mission: secondArgument.
                 isUnknown := false
             ].
 
@@ -347,6 +393,7 @@ Object subclass: Game [
                 self move: 'e'.
                 isUnknown := false
             ].
+
 
             isUnknown ifTrue: [
                 self printLines: #('Unknown command.' '')
