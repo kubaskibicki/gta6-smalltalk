@@ -60,6 +60,10 @@ Object subclass: Npc [
     message [
         ^ message
     ]
+
+    asString [
+        ^ name
+    ]
 ].
 
 
@@ -114,6 +118,10 @@ Object subclass: Location [
 
     listObtainable [
         ^ obtainable ifNil: [ #() ] ifNotNil: [ obtainable asArray ].
+    ]
+
+    listAskable [
+        ^ askable ifNil: [ #() ] ifNotNil: [ askable asArray ].
     ]
 
     addAskable: anNpc [
@@ -419,16 +427,24 @@ Object subclass: Game [
 
 
     look [
-    | items |
+    | obtainable askable|
     self printLines: location description.
 
-    items := location listObtainable.
+    askable := location listAskable.
 
-    "Jeśli w lokacji są jakieś przedmioty, wypisz je."
-    items isEmpty
+    askable isEmpty
         ifFalse: [
-            items do: [:thing |
-                Transcript show: 'There is a ', thing asString, ' laying Here'; cr.
+            askable do: [:hing |
+                Transcript show: 'You meet ', hing asString, ' here';cr; cr.
+            ].
+        ].
+
+    obtainable := location listObtainable.
+
+    obtainable isEmpty
+        ifFalse: [
+            obtainable do: [:thing |
+                Transcript show: 'There is a ', thing asString, ' laying here'; cr.
             ].
         ].
 
