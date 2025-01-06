@@ -62,8 +62,10 @@ Object subclass: Npc [
     ]
 ].
 
+
+
 Object subclass: Location [
-    | name description things |
+    | name description obtainable askable |
 
     name: aString [
         name := aString
@@ -81,28 +83,41 @@ Object subclass: Location [
         ^ description
     ]
 
-    things [
-        ^ things
+    obtainable [
+        ^ obtainable
     ]
 
-    things: aCollection [
-        things := aCollection
+    obtainable: aCollection [
+        obtainable := aCollection
+    ]
+
+    askable [
+        ^ askable
+    ]
+
+    askable: aCollection [
+        askable := aCollection
     ]
 
     initialize [
-        things := OrderedCollection new.
+        obtainable := OrderedCollection new.
+        askable := OrderedCollection new
     ]
 
     addThing: anObtainable [
-        things add: anObtainable
+        obtainable add: anObtainable
     ]
 
     removeThing: anObtainable [
-        things remove: anObtainable ifAbsent: [].
+        obtainable remove: anObtainable ifAbsent: [].
     ]
 
-    listThings [
-        ^ things ifNil: [ #() ] ifNotNil: [ things asArray ].
+    listObtainable [
+        ^ obtainable ifNil: [ #() ] ifNotNil: [ obtainable asArray ].
+    ]
+
+    addAskable: anNpc [
+        askable add: anNpc
     ]
 
     Location class >> new [
@@ -112,6 +127,7 @@ Object subclass: Location [
         ^ instance
     ]
 ].
+
 
 Object subclass: LocationsConnection [
     | currentLocation direction newLocation |
@@ -224,6 +240,17 @@ Object subclass: Game [
         barrow := Obtainable new.
         barrow name: 'barrow'.
 
+        "NPCs"
+        supervisor := Npc new.
+        supervisor
+            name: 'supervisor';
+            message: 'Hey how are you? It''s beautiful weather out there isn''t it?'.
+
+        worker := Npc new.
+        worker
+            name: 'worker';
+            message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
+
         "Places."
         lobby := Location new.
         lobby name: 'lobby'.
@@ -244,6 +271,8 @@ Object subclass: Game [
         ).
         construction_site_south_gate addThing: drill.
         construction_site_south_gate addThing: barrow.
+        construction_site_south_gate addAskable: supervisor.
+
 
         construction_site := Location new.
         construction_site name: 'construction_site'.
@@ -254,6 +283,7 @@ Object subclass: Game [
             ''
         ).
         construction_site addThing: barrow.
+        construction_site addAskable: worker.
 
         containers := Location new.
         containers name: 'containers'.
@@ -329,15 +359,7 @@ Object subclass: Game [
             direction: 'w';
             newLocation: containers.
 
-        supervisor := Npc new.
-        supervisor
-            name: 'supervisor';
-            message: 'Hey how are you? It''s beautiful weather out there isn''t it?'.
 
-        worker := Npc new.
-        worker
-            name: 'worker';
-            message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
 
         "Game state."
         isGameOver := false.
@@ -390,36 +412,50 @@ Object subclass: Game [
             ]
             ifNotNil: [
                 location := connection newLocation.
-                Transcript show: 'You moved to: ', location name; cr; cr
+                self look.
             ].
     ]
 
 
 
     look [
-        self printLines: location description
-    ]
+    | items |
+    self printLines: location description.
 
-    ask: aNpc [
-        | allNpcs npc |
+    items := location listObtainable.
 
-        allNpcs := { supervisor. worker }.
-
-        "We must also define npcLocation if you want to see
-         who is in the current location. For now, we’ll just
-         pretend no NPC is in the user’s location."
-        npc := allNpcs
-            detect: [ :c | c name = aNpc ]
-            ifNone: [ nil ].
-
-        npc
-            ifNil: [
-                self printLines: #('There is no such person here.' '')
-            ]
-            ifNotNil: [
-                Transcript show: npc message; cr; cr
+    "Jeśli w lokacji są jakieś przedmioty, wypisz je."
+    items isEmpty
+        ifFalse: [
+            items do: [:thing |
+                Transcript show: 'There is a ', thing asString, ' laying Here'; cr.
             ].
-    ]
+        ].
+
+    Transcript cr.
+]
+
+
+
+
+
+    ask: aNpcName [
+    | npc |
+
+    "Spróbuj znaleźć NPC o danej nazwie wśród askable bieżącej lokacji."
+    npc := location askable
+        detect: [:someNpc | someNpc name = aNpcName ]
+        ifNone: [ nil ].
+
+    npc
+        ifNil: [
+            self printLines: #('There is no such person here.' '')
+        ]
+        ifNotNil: [
+            Transcript show: npc message; cr; cr
+        ].
+]
+
 
     choose_mission: missionName [
         (location name = 'lobby')
@@ -446,7 +482,8 @@ Object subclass: Game [
                             ifFalse: [
                                 location := foundMission startLocation.
                                 current_mission := foundMission name.
-                                Transcript show: 'You have chosen mission: ', foundMission name; cr; cr
+                                Transcript show: 'You have chosen mission: ', foundMission name; cr; cr.
+                                self look
                             ].
                     ].
             ].
