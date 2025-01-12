@@ -92,10 +92,18 @@ Object subclass: Obtainable [
 
 
 Object subclass: Searchable [
-    | name content |
+    | name content description |
 
     name: aName [
         name := aName
+    ]
+
+    description: aDescription [
+        description := aDescription
+    ]
+
+    description [
+        ^ description
     ]
 
     name [
@@ -379,26 +387,32 @@ Object subclass: Game [
         "Searchable"
         blue_container := Searchable new.
         blue_container name: 'blue_container'.
+        blue_container description: 'You search blue container and find: '.
         blue_container addContent: drill.
 
 
         white_container := Searchable new.
+        white_container description: 'You search white container and find: '.
         white_container name: 'white_container'.
 
         black_container := Searchable new.
         black_container name: 'black_container'.
+        black_container description: 'You search black container and find: '.
         black_container addContent: beams.
 
         red_container := Searchable new.
         red_container name: 'red_container'.
+        red_container description: 'You search red container and find: '.
         red_container addContent: hammers.
 
         yellow_container := Searchable new.
         yellow_container name: 'yellow_container'.
+        yellow_container description: 'You search yellow container and find: '.
         yellow_container addContent: barrow.
 
         green_container := Searchable new.
         green_container name: 'green_container'.
+        green_container description: 'You search green container and find: '.
         green_container addContent: windows.
 
 
@@ -605,7 +619,7 @@ Object subclass: Game [
                         self printLines: #('There is nothing inside.' '')
                     ]
                     ifFalse: [
-                        Transcript show: 'You looked inside ', searchable asString, ', and found:'; cr.
+                        Transcript show: searchable description; cr.
                         items do: [:item |
                             Transcript show: item asString; cr.
                             location addThing: item.
