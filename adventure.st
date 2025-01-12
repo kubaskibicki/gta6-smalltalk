@@ -26,22 +26,6 @@ Object subclass: Mission [
     ]
 ].
 
-Object subclass: Obtainable [
-    | name |
-
-    name: aName [
-        name := aName
-    ]
-
-    name [
-        ^ name
-    ]
-
-    asString [
-        ^ name
-    ]
-].
-
 Object subclass: Npc [
     | name message |
 
@@ -67,9 +51,79 @@ Object subclass: Npc [
 ].
 
 
+Object subclass: Obtainable [
+    | name |
+
+    name: aName [
+        name := aName
+    ]
+
+    name [
+        ^ name
+    ]
+
+    asString [
+        ^ name
+    ]
+].
+
+Object subclass: Searchable [
+    | name content |
+
+    name: aName [
+        name := aName
+    ]
+
+    name [
+        ^ name
+    ]
+
+    asString [
+        ^ name
+    ]
+
+    content [
+        ^ content
+    ]
+
+    content: aCollection [
+        content := aCollection
+    ]
+
+    initialize [
+        content := OrderedCollection new.
+    ]
+
+    addContent: anObtainable [
+        content add: anObtainable
+    ]
+
+    removeThing: anObtainable [
+        content remove: anObtainable ifAbsent: [].
+    ]
+
+    listObtainable [
+        ^ content ifNil: [ #() ] ifNotNil: [ content asArray ].
+    ]
+
+    Searchable class >> new [
+        | instance |
+        instance := super new.
+        instance initialize.
+        ^ instance
+    ]
+
+
+].
+
+
+
+
+
+
 
 Object subclass: Location [
-    | name description obtainable askable |
+    | name description searchable obtainable askable |
 
     name: aString [
         name := aString
@@ -85,6 +139,14 @@ Object subclass: Location [
 
     description [
         ^ description
+    ]
+
+    searchable [
+        ^ searchable
+    ]
+
+    searchable: aCollection [
+        searchable := aCollection
     ]
 
     obtainable [
@@ -105,7 +167,20 @@ Object subclass: Location [
 
     initialize [
         obtainable := OrderedCollection new.
-        askable := OrderedCollection new
+        askable := OrderedCollection new.
+        searchable := OrderedCollection new.
+    ]
+
+    addSearchable: aSearchable [
+        searchable add: aSearchable
+    ]
+
+    removeSearchable: aSearchable [
+        searchable remove: aSearchable ifAbsent: [].
+    ]
+
+    listSearchable [
+        ^ searchable ifNil: [ #() ] ifNotNil: [ searchable asArray ].
     ]
 
     addThing: anObtainable [
@@ -177,6 +252,10 @@ Object subclass: Game [
       "Obtainable."
       drill
       barrow
+      beams
+
+      "Searchable"
+      blue_container
 
       "Places"
       lobby
@@ -248,6 +327,15 @@ Object subclass: Game [
         barrow := Obtainable new.
         barrow name: 'barrow'.
 
+        beams := Obtainable new.
+        beams name: 'beams'.
+
+
+        "Searchable"
+        blue_container := Searchable new.
+        blue_container name: 'blue_container'.
+        blue_container addContent: beams.
+
         "NPCs"
         supervisor := Npc new.
         supervisor
@@ -298,6 +386,7 @@ Object subclass: Game [
             'You are now standing in front of a row of containers.'
             ''
         ).
+        containers addSearchable: blue_container.
 
         construction_site_east_gate := Location new.
         construction_site_east_gate name: 'construction_site_east_gate'.
@@ -422,6 +511,37 @@ Object subclass: Game [
             ].
     ]
 
+    examine: searchableName [
+        | searchable items |
+
+        "Znajdź obiekt Searchable o podanej nazwie w bieżącej lokalizacji."
+        searchable := location searchable
+            detect: [:aSearchable | aSearchable name = searchableName ]
+            ifNone: [ nil ].
+
+        searchable
+            ifNil: [
+                self printLines: #('There is no such searchable object here.' '')
+            ]
+            ifNotNil: [
+                items := searchable content.
+
+                items isEmpty
+                    ifTrue: [
+                        self printLines: #('There is nothing inside.' '')
+                    ]
+                    ifFalse: [
+                        Transcript show: 'You looked inside ', searchable asString, ', and found:'; cr.
+                        items do: [:item |
+                            Transcript show: item asString; cr.
+                            location addThing: item.
+                        ].
+                        searchable content: OrderedCollection new.
+                    ].
+            ].
+    ]
+
+
     take: itemName [
         | item |
 
@@ -462,29 +582,29 @@ Object subclass: Game [
 
 
     look [
-    | obtainable askable|
-    self printLines: location description.
+        | obtainable askable|
+        self printLines: location description.
 
-    askable := location listAskable.
+        askable := location listAskable.
 
-    askable isEmpty
-        ifFalse: [
-            askable do: [:hing |
-                Transcript show: 'You meet ', hing asString, ' here';cr; cr.
+        askable isEmpty
+            ifFalse: [
+                askable do: [:hing |
+                    Transcript show: 'You meet ', hing asString, ' here';cr; cr.
+                ].
             ].
-        ].
 
-    obtainable := location listObtainable.
+        obtainable := location listObtainable.
 
-    obtainable isEmpty
-        ifFalse: [
-            obtainable do: [:thing |
-                Transcript show: 'There is a ', thing asString, ' laying here'; cr.
+        obtainable isEmpty
+            ifFalse: [
+                obtainable do: [:thing |
+                    Transcript show: 'There is a ', thing asString, ' laying here'; cr.
+                ].
             ].
-        ].
 
-    Transcript cr.
-]
+        Transcript cr.
+    ]
 
 
 
@@ -569,6 +689,13 @@ Object subclass: Game [
                 self take: secondArgument.
                 isUnknown := false
             ].
+
+            (parts size = 2 and: [ parts first = 'examine' ]) ifTrue: [
+                secondArgument := parts second.
+                self examine: secondArgument.
+                isUnknown := false
+            ].
+
 
             cmd = 'drop' ifTrue: [
                 self drop.
