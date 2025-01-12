@@ -24,6 +24,10 @@ Object subclass: Mission [
     startLocation [
         ^ startLocation
     ]
+
+    asString [
+        ^ name
+    ]
 ].
 
 Object subclass: Npc [
@@ -52,7 +56,7 @@ Object subclass: Npc [
 
 
 Object subclass: Obtainable [
-    | name |
+    | name finishing |
 
     name: aName [
         name := aName
@@ -62,10 +66,30 @@ Object subclass: Obtainable [
         ^ name
     ]
 
+    finishing [
+        ^ finishing
+    ]
+
+    finishing: aBoolean [
+        finishing := aBoolean
+    ]
+
+    initialize [
+        finishing := false.
+    ]
+
     asString [
         ^ name
     ]
+
+    Obtainable class >> new [
+        | instance |
+        instance := super new.
+        instance initialize.
+        ^ instance
+    ]
 ].
+
 
 Object subclass: Searchable [
     | name content |
@@ -119,11 +143,8 @@ Object subclass: Searchable [
 
 
 
-
-
-
 Object subclass: Location [
-    | name description searchable obtainable askable |
+    | name description searchable obtainable askable finishing |
 
     name: aString [
         name := aString
@@ -139,6 +160,14 @@ Object subclass: Location [
 
     description [
         ^ description
+    ]
+
+    finishing [
+        ^ finishing
+    ]
+
+    finishing: aBoolean [
+        finishing := aBoolean
     ]
 
     searchable [
@@ -169,6 +198,7 @@ Object subclass: Location [
         obtainable := OrderedCollection new.
         askable := OrderedCollection new.
         searchable := OrderedCollection new.
+        finishing := false
     ]
 
     addSearchable: aSearchable [
@@ -330,6 +360,7 @@ Object subclass: Game [
         "Obtainable."
         drill := Obtainable new.
         drill name: 'drill'.
+        drill finishing: true.
 
         barrow := Obtainable new.
         barrow name: 'barrow'.
@@ -350,24 +381,25 @@ Object subclass: Game [
         blue_container name: 'blue_container'.
         blue_container addContent: drill.
 
+
         white_container := Searchable new.
         white_container name: 'white_container'.
 
         black_container := Searchable new.
         black_container name: 'black_container'.
-        black_container addContent: drill.
+        black_container addContent: beams.
 
         red_container := Searchable new.
         red_container name: 'red_container'.
-        red_container addContent: drill.
+        red_container addContent: hammers.
 
         yellow_container := Searchable new.
         yellow_container name: 'yellow_container'.
-        yellow_container addContent: drill.
+        yellow_container addContent: barrow.
 
         green_container := Searchable new.
         green_container name: 'green_container'.
-        green_container addContent: drill.
+        green_container addContent: windows.
 
 
 
@@ -401,6 +433,7 @@ Object subclass: Game [
             ''
         ).
         construction_site_south_gate addAskable: supervisor.
+        construction_site_south_gate finishing: true.
 
 
         construction_site := Location new.
@@ -435,6 +468,7 @@ Object subclass: Game [
             'another escape point'
             ''
         ).
+        construction_site_east_gate finishing: true.
 
         "Mission progress."
         drill_mission := Mission new.
@@ -454,6 +488,8 @@ Object subclass: Game [
             name: 'weapon';
             finished: false;
             startLocation: construction_site_south_gate.
+
+
 
         "Connections."
         construction_site_south_gate_N_construction_site := LocationsConnection new.
@@ -577,13 +613,13 @@ Object subclass: Game [
                         searchable content: OrderedCollection new.
                     ].
             ].
+        Transcript cr.
     ]
 
 
     take: itemName [
         | item |
 
-        "Attempt to find the item in the obtainable list of the current location."
         item := location obtainable
             detect: [:anItem | anItem name = itemName ]
             ifNone: [ nil ].
@@ -659,21 +695,54 @@ Object subclass: Game [
 
 
     ask: aNpcName [
-    | npc |
+        | npc |
 
-    "Spróbuj znaleźć NPC o danej nazwie wśród askable bieżącej lokacji."
-    npc := location askable
-        detect: [:someNpc | someNpc name = aNpcName ]
-        ifNone: [ nil ].
+        npc := location askable
+            detect: [:someNpc | someNpc name = aNpcName ]
+            ifNone: [ nil ].
 
-    npc
-        ifNil: [
-            self printLines: #('There is no such person here.' '')
-        ]
-        ifNotNil: [
-            Transcript show: npc message; cr; cr
-        ].
-]
+        npc
+            ifNil: [
+                self printLines: #('There is no such person here.' '')
+            ]
+            ifNotNil: [
+                Transcript show: npc message; cr; cr
+            ].
+    ]
+
+
+    finish_mission [
+        | currentMission currentItem currentLoc matchingMission |
+
+        currentItem := has.
+        currentLoc := location.
+        currentMission := current_mission.
+
+        (currentItem ~= 'nothing')
+            ifTrue: [
+                (currentLoc finishing)
+                    ifTrue: [
+                        (currentItem finishing)
+                            ifTrue: [
+                                Transcript show: 'You successfully completed mission ', current_mission; cr; cr.
+                                location := lobby.
+                                currentMission finished: true.
+                                current_mission := 'none'.
+                                has := 'nothing'.
+                                self look
+                            ]
+                            ifFalse: [
+                                self printLines: #('You cannot finish the mission yet.' '')
+                            ].
+                        ]
+                    ifFalse: [
+                        self printLines: #('You cannot finish the mission yet.' '')
+                    ].
+            ]
+            ifFalse: [
+                self printLines: #('You need to obtain certain objects in order to finish the mission.' '')
+            ].
+    ]
 
 
     choose_mission: missionName [
@@ -700,7 +769,7 @@ Object subclass: Game [
                             ]
                             ifFalse: [
                                 location := foundMission startLocation.
-                                current_mission := foundMission name.
+                                current_mission := foundMission.
                                 Transcript show: 'You have chosen mission: ', foundMission name; cr; cr.
                                 self look
                             ].
@@ -744,6 +813,10 @@ Object subclass: Game [
                 isUnknown := false
             ].
 
+            cmd = 'finish_mission' ifTrue: [
+                self finish_mission.
+                isUnknown := false
+            ].
 
             cmd = 'drop' ifTrue: [
                 self drop.
