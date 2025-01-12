@@ -253,9 +253,16 @@ Object subclass: Game [
       drill
       barrow
       beams
+      hammers
+      windows
 
       "Searchable"
       blue_container
+      white_container
+      black_container
+      red_container
+      yellow_container
+      green_container
 
       "Places"
       lobby
@@ -330,11 +337,39 @@ Object subclass: Game [
         beams := Obtainable new.
         beams name: 'beams'.
 
+        hammers := Obtainable new.
+        hammers name: 'hammers'.
+
+        windows := Obtainable new.
+        windows name: 'windows'.
+
+
 
         "Searchable"
         blue_container := Searchable new.
         blue_container name: 'blue_container'.
-        blue_container addContent: beams.
+        blue_container addContent: drill.
+
+        white_container := Searchable new.
+        white_container name: 'white_container'.
+
+        black_container := Searchable new.
+        black_container name: 'black_container'.
+        black_container addContent: drill.
+
+        red_container := Searchable new.
+        red_container name: 'red_container'.
+        red_container addContent: drill.
+
+        yellow_container := Searchable new.
+        yellow_container name: 'yellow_container'.
+        yellow_container addContent: drill.
+
+        green_container := Searchable new.
+        green_container name: 'green_container'.
+        green_container addContent: drill.
+
+
 
         "NPCs"
         supervisor := Npc new.
@@ -365,8 +400,6 @@ Object subclass: Game [
             'and containers with various construction equipment. Find the drill.'
             ''
         ).
-        construction_site_south_gate addThing: drill.
-        construction_site_south_gate addThing: barrow.
         construction_site_south_gate addAskable: supervisor.
 
 
@@ -387,6 +420,12 @@ Object subclass: Game [
             ''
         ).
         containers addSearchable: blue_container.
+        containers addSearchable: red_container.
+        containers addSearchable: yellow_container.
+        containers addSearchable: white_container.
+        containers addSearchable: black_container.
+        containers addSearchable: green_container.
+
 
         construction_site_east_gate := Location new.
         construction_site_east_gate name: 'construction_site_east_gate'.
@@ -404,7 +443,6 @@ Object subclass: Game [
             finished: false;
             startLocation: construction_site_south_gate.
 
-        "Dummy placeholders for other missions (so code won’t fail)."
         car_mission := Mission new.
         car_mission
             name: 'car';
@@ -582,7 +620,7 @@ Object subclass: Game [
 
 
     look [
-        | obtainable askable|
+        | obtainable askable searchable |
         self printLines: location description.
 
         askable := location listAskable.
@@ -590,9 +628,22 @@ Object subclass: Game [
         askable isEmpty
             ifFalse: [
                 askable do: [:hing |
-                    Transcript show: 'You meet ', hing asString, ' here';cr; cr.
+                    Transcript show: 'You meet ', hing asString, ' here'; cr.
                 ].
             ].
+
+        Transcript cr.
+
+        searchable := location listSearchable.
+
+        searchable isEmpty
+            ifFalse: [
+                searchable do: [:thing |
+                    Transcript show: 'There is a ', thing asString, ' here'; cr.
+                ].
+            ].
+
+        Transcript cr.
 
         obtainable := location listObtainable.
 
@@ -605,9 +656,6 @@ Object subclass: Game [
 
         Transcript cr.
     ]
-
-
-
 
 
     ask: aNpcName [
