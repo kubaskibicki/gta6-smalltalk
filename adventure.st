@@ -290,7 +290,6 @@ Object subclass: Game [
             'You can also take a closer look at construction workers.'
             ''
         ).
-        construction_site addThing: barrow.
         construction_site addAskable: worker.
 
         containers := Location new.
@@ -299,7 +298,6 @@ Object subclass: Game [
             'You are now standing in front of a row of containers.'
             ''
         ).
-        containers addThing: drill.
 
         construction_site_east_gate := Location new.
         construction_site_east_gate name: 'construction_site_east_gate'.
@@ -424,6 +422,43 @@ Object subclass: Game [
             ].
     ]
 
+    take: itemName [
+        | item |
+
+        "Attempt to find the item in the obtainable list of the current location."
+        item := location obtainable
+            detect: [:anItem | anItem name = itemName ]
+            ifNone: [ nil ].
+
+        item
+            ifNil: [
+                self printLines: #('There is no such item here.' '')
+            ]
+            ifNotNil: [
+                has = 'nothing'
+                    ifFalse: [
+                        self printLines: #('You are already holding something. Drop it first to take another item.' '')
+                    ]
+                    ifTrue: [
+                        has := item.
+                        location removeThing: item.
+                        Transcript show: 'You picked up ', item asString, '.'; cr; cr.
+                    ].
+            ].
+    ]
+
+    drop [
+        has = 'nothing'
+            ifTrue: [
+                self printLines: #('You are not holding anything to drop.' '')
+            ]
+            ifFalse: [
+                location addThing: has.
+                Transcript show: 'You dropped ', has asString, '.'; cr; cr.
+                has := 'nothing'.
+            ].
+    ]
+
 
 
     look [
@@ -528,6 +563,18 @@ Object subclass: Game [
                 self choose_mission: secondArgument.
                 isUnknown := false
             ].
+
+            (parts size = 2 and: [ parts first = 'take' ]) ifTrue: [
+                secondArgument := parts second.
+                self take: secondArgument.
+                isUnknown := false
+            ].
+
+            cmd = 'drop' ifTrue: [
+                self drop.
+                isUnknown := false
+            ].
+
 
             cmd = 'instructions' ifTrue: [
                 self printInstructions.
