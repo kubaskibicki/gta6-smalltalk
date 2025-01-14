@@ -762,7 +762,12 @@ Object subclass: Game [
             direction: 'w';
             newLocation: containers.
 
-        "GATE FRONTYARD CONNECTION HERE"
+        vinewood_hills_black20_mansion_frontyard := LocationsPasswordConnection new.
+        vinewood_hills_black20_mansion_frontyard
+            currentLocation: vinewood_hills;
+            password: 'black20';
+            middle: gate;
+            newLocation: mansion_frontyard.
 
         mansion_frontyard_E_outbuilding := LocationsStandardConnection new.
         mansion_frontyard_E_outbuilding
@@ -804,6 +809,7 @@ Object subclass: Game [
         ^ FileStream stdin nextLine
     ]
 
+
     move: aDirection [
         | possibleConnections connection |
         possibleConnections := {
@@ -833,6 +839,37 @@ Object subclass: Game [
                 self look.
             ].
     ]
+
+
+    open: middle code: code [
+        | possibleConnections connection |
+
+        possibleConnections := {
+            vinewood_hills_black20_mansion_frontyard
+        }.
+
+        connection := possibleConnections
+            detect: [ :c |
+                (c currentLocation name = location name) and: [
+                    (c password = code) and: [
+                        c middle name = middle
+                    ]
+                ]
+            ]
+
+            ifNone: [ nil ].
+
+        connection
+            ifNil: [
+                self printLines: #('Access Denied' '')
+            ]
+            ifNotNil: [
+                location := connection newLocation.
+                Transcript show: 'You successfully opened ', middle, ' and moved to ', location name; cr; cr.
+                self look.
+            ].
+    ]
+
 
     examine: searchableName [
         | searchable items |
@@ -890,6 +927,7 @@ Object subclass: Game [
             ].
     ]
 
+
     drop [
         has = 'nothing'
             ifTrue: [
@@ -901,7 +939,6 @@ Object subclass: Game [
                 has := 'nothing'.
             ].
     ]
-
 
 
     look [
@@ -1026,9 +1063,10 @@ Object subclass: Game [
             ].
     ]
 
+
     "Main game loop."
     run [
-        | cmd isUnknown parts secondArgument |
+        | cmd isUnknown parts secondArgument thirdArgument |
 
         self printIntroduction.
         self printInstructions.
@@ -1037,6 +1075,13 @@ Object subclass: Game [
             isUnknown := true.
             cmd := self readCommand.
             parts := cmd subStrings: ' '.
+
+            (parts size = 3 and: [ parts first = 'open' ]) ifTrue: [
+                secondArgument := parts second.
+                thirdArgument := parts third.
+                self open: secondArgument code: thirdArgument.
+                isUnknown := false
+            ].
 
             (parts size = 2 and: [ parts first = 'ask' ]) ifTrue: [
                 secondArgument := parts second.
@@ -1071,7 +1116,6 @@ Object subclass: Game [
                 self drop.
                 isUnknown := false
             ].
-
 
             cmd = 'instructions' ifTrue: [
                 self printInstructions.
