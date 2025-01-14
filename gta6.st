@@ -308,6 +308,11 @@ LocationsConnection subclass: LocationsPasswordConnection [
 ].
 
 
+LocationsConnection subclass: LocationsLeavingConnection [
+
+].
+
+
 
 Object subclass: Game [
     |
@@ -375,6 +380,7 @@ Object subclass: Game [
         construction_site_east_gate_W_containers
 
         vinewood_hills_black20_mansion_frontyard
+        mansion_frontyard_leave_vinewood_hills
         mansion_frontyard_E_outbuilding
         outbuilding_W_mansion_frontyard
 
@@ -769,6 +775,11 @@ Object subclass: Game [
             middle: gate;
             newLocation: mansion_frontyard.
 
+        mansion_frontyard_leave_vinewood_hills := LocationsLeavingConnection new.
+        mansion_frontyard_leave_vinewood_hills
+            currentLocation: mansion_frontyard;
+            newLocation: vinewood_hills.
+
         mansion_frontyard_E_outbuilding := LocationsStandardConnection new.
         mansion_frontyard_E_outbuilding
             currentLocation: mansion_frontyard;
@@ -866,6 +877,33 @@ Object subclass: Game [
             ifNotNil: [
                 location := connection newLocation.
                 Transcript show: 'You successfully opened ', middle, ' and moved to ', location name; cr; cr.
+                self look.
+            ].
+    ]
+
+
+    leave [
+        | possibleConnections connection |
+
+        possibleConnections := {
+            mansion_frontyard_leave_vinewood_hills
+        }.
+
+        "Sprawdź, czy istnieje połączenie z bieżącej lokalizacji"
+        connection := possibleConnections
+            detect: [ :c |
+                c currentLocation name = location name
+            ]
+            ifNone: [ nil ].
+
+        "Jeśli takie połączenie istnieje, przenieś gracza do nowej lokalizacji"
+        connection
+            ifNil: [
+                self printLines: #('You cannot leave this location.' '')
+            ]
+            ifNotNil: [
+                location := connection newLocation.
+                Transcript show: 'You left the location and moved to ', location name; cr; cr.
                 self look.
             ].
     ]
@@ -1149,6 +1187,11 @@ Object subclass: Game [
 
             cmd = 'e' ifTrue: [
                 self move: 'e'.
+                isUnknown := false
+            ].
+
+            cmd = 'leave' ifTrue: [
+                self leave.
                 isUnknown := false
             ].
 
