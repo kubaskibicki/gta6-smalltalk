@@ -30,6 +30,8 @@ Object subclass: Mission [
     ]
 ].
 
+
+
 Object subclass: Npc [
     | name message |
 
@@ -53,6 +55,7 @@ Object subclass: Npc [
         ^ name
     ]
 ].
+
 
 
 Object subclass: Obtainable [
@@ -89,6 +92,7 @@ Object subclass: Obtainable [
         ^ instance
     ]
 ].
+
 
 
 Object subclass: Searchable [
@@ -147,7 +151,6 @@ Object subclass: Searchable [
 
 
 ].
-
 
 
 
@@ -250,8 +253,9 @@ Object subclass: Location [
 ].
 
 
-Object subclass: LocationsConnection [
-    | currentLocation direction newLocation |
+
+Object subclass: LocationConnection [
+    | currentLocation newLocation |
 
     currentLocation: aLocation [
         currentLocation := aLocation
@@ -261,6 +265,21 @@ Object subclass: LocationsConnection [
         ^ currentLocation
     ]
 
+    newLocation: aLocation [
+        newLocation := aLocation
+    ]
+
+    newLocation [
+        ^ newLocation
+    ]
+
+].
+
+
+
+LocationConnection subclass: LocationsStandardConnection [
+    | direction |
+
     direction: aDirection [
         direction := aDirection
     ]
@@ -269,14 +288,9 @@ Object subclass: LocationsConnection [
         ^ direction
     ]
 
-    newLocation: aLocation [
-        newLocation := aLocation
-    ]
-
-    newLocation [
-        ^ newLocation
-    ]
 ].
+
+
 
 Object subclass: Game [
     |
@@ -624,37 +638,37 @@ Object subclass: Game [
 
 
         "Connections."
-        construction_site_south_gate_N_construction_site := LocationsConnection new.
+        construction_site_south_gate_N_construction_site := LocationsStandardConnection new.
         construction_site_south_gate_N_construction_site
             currentLocation: construction_site_south_gate;
             direction: 'n';
             newLocation: construction_site.
 
-        construction_site_S_construction_site_south_gate := LocationsConnection new.
+        construction_site_S_construction_site_south_gate := LocationsStandardConnection new.
         construction_site_S_construction_site_south_gate
             currentLocation: construction_site;
             direction: 's';
             newLocation: construction_site_south_gate.
 
-        construction_site_E_containers := LocationsConnection new.
+        construction_site_E_containers := LocationsStandardConnection new.
         construction_site_E_containers
             currentLocation: construction_site;
             direction: 'e';
             newLocation: containers.
 
-        containers_W_construction_site := LocationsConnection new.
+        containers_W_construction_site := LocationsStandardConnection new.
         containers_W_construction_site
             currentLocation: containers;
             direction: 'w';
             newLocation: construction_site.
 
-        containers_E_construction_site_east_gate := LocationsConnection new.
+        containers_E_construction_site_east_gate := LocationsStandardConnection new.
         containers_E_construction_site_east_gate
             currentLocation: containers;
             direction: 'e';
             newLocation: construction_site_east_gate.
 
-        construction_site_east_gate_W_containers := LocationsConnection new.
+        construction_site_east_gate_W_containers := LocationsStandardConnection new.
         construction_site_east_gate_W_containers
             currentLocation: construction_site_east_gate;
             direction: 'w';
