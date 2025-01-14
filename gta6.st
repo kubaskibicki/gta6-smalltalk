@@ -148,8 +148,6 @@ Object subclass: Searchable [
         instance initialize.
         ^ instance
     ]
-
-
 ].
 
 
@@ -254,7 +252,7 @@ Object subclass: Location [
 
 
 
-Object subclass: LocationConnection [
+Object subclass: LocationsConnection [
     | currentLocation newLocation |
 
     currentLocation: aLocation [
@@ -272,12 +270,11 @@ Object subclass: LocationConnection [
     newLocation [
         ^ newLocation
     ]
-
 ].
 
 
 
-LocationConnection subclass: LocationsStandardConnection [
+LocationsConnection subclass: LocationsStandardConnection [
     | direction |
 
     direction: aDirection [
@@ -287,7 +284,27 @@ LocationConnection subclass: LocationsStandardConnection [
     direction [
         ^ direction
     ]
+].
 
+
+LocationsConnection subclass: LocationsPasswordConnection [
+    | password middle |
+
+    password: aPassword [
+        password := aPassword
+    ]
+
+    password [
+        ^ password
+    ]
+
+    middle: aSearchable [
+        middle := aSearchable
+    ]
+
+    middle [
+        ^ middle
+    ]
 ].
 
 
@@ -295,11 +312,11 @@ LocationConnection subclass: LocationsStandardConnection [
 Object subclass: Game [
     |
 
-
         "Mission progress."
         drill_mission
         car_mission
         weapon_mission
+
 
         "Obtainable."
         drill
@@ -314,6 +331,7 @@ Object subclass: Game [
         bmw_keys
         jeep_keys
 
+
         "Searchable"
         blue_container
         white_container
@@ -322,9 +340,12 @@ Object subclass: Game [
         yellow_container
         green_container
 
-
         neighbourhood
         envelope
+        gate
+        porsche
+        bmw
+        jeep
         shelf
         first_drawer
         second_drawer
@@ -332,13 +353,18 @@ Object subclass: Game [
         fourth_drawer
         fifth_drawer
 
+
         "Places"
         lobby
         construction_site_south_gate
         construction_site
         containers
         construction_site_east_gate
+
         vinewood_hills
+        mansion_frontyard
+        outbuilding
+
 
         "Places connections."
         construction_site_south_gate_N_construction_site
@@ -348,14 +374,22 @@ Object subclass: Game [
         containers_E_construction_site_east_gate
         construction_site_east_gate_W_containers
 
+        vinewood_hills_black20_mansion_frontyard
+        mansion_frontyard_E_outbuilding
+        outbuilding_W_mansion_frontyard
+
+
+        "NPCs"
         worker
         supervisor
+
 
         "Game state."
         isGameOver
         current_mission
         location
         has
+
     |
 
     introductionText := #(
@@ -369,16 +403,15 @@ Object subclass: Game [
     instructionsText := #(
         'Available commands are:'
         ''
-        'start                      -- to start the game.'
-        'n.  s.  e.  w.             -- to go in that direction.'
-        'choose_mission(Mission)    -- to start mission (options: car, drill, weapon).'
+        'n,  s,  e,  w              -- to go in that direction.'
+        'choose_mission *mission*    -- to start mission (options: car, drill, weapon).'
         'finish_mission             -- to finish mission (after completing required tasks - getting car keys or drill or type of weapon).'
-        'take(Object)               -- to pick up an object.'
+        'take *object*              -- to pick up an object.'
         'drop                       -- to put down an object.'
         'open(Thing, Tool/Code)     -- to open a secured (probably closed) Thing (can be gate, window or safe) using Tool or Code.'
-        'leave(Place)               -- to leave a place only if a place was entered with use of open() command.'
-        'examine(Something)         -- to get more specified description of place or thing if description is known.'
-        'ask(Person)                -- to ask other characters (specified Person or group) about things.'
+        'leave                      -- to leave a place only if a place was entered with use of open() command.'
+        'examine *something*        -- to get more specified description of place or thing if description is known.'
+        'ask *person*               -- to ask other characters (specified Person or group) about things.'
         'look                       -- to look around you again.'
         'instructions               -- to see this message again.'
         'end_game                   -- to end game (you win if all missions are complited).'
@@ -497,6 +530,38 @@ Object subclass: Game [
             'VH housing'
             ).
 
+        gate := Searchable new.
+        gate name: 'gate'.
+        gate description: #(
+            'The mansion’s gate is secured. You need a password to get through.'
+            ).
+
+        porsche := Searchable new.
+        porsche name: 'porsche'.
+        porsche description: #(
+            'A sports coupe, that can go through paved roads very quickly.'
+            ).
+
+        bmw := Searchable new.
+        bmw name: 'bmw'.
+        bmw description: #(
+            'An armored version of this car, that can withstand gunshots, at cost of not being too fast.'
+            ).
+
+        jeep := Searchable new.
+        jeep name: 'jeep'.
+        jeep description: #(
+            'A quick SUV, capable of driving through more remote terrain.'
+            ).
+
+        shelf := Searchable new.
+        shelf name: 'shelf'.
+        shelf description: #(
+            'You took a closer look at objects on the shelf and found:'
+            ).
+        shelf addContent: axe.
+        shelf addContent: crowbar.
+
         first_drawer := Searchable new.
         first_drawer name: 'first_drawer'.
         first_drawer description: #(
@@ -613,6 +678,29 @@ Object subclass: Game [
         ).
         vinewood_hills addSearchable: neighbourhood.
         vinewood_hills addSearchable: envelope.
+        vinewood_hills addSearchable: gate.
+
+        mansion_frontyard := Location new.
+        mansion_frontyard name: 'mansion_frontyard'.
+        mansion_frontyard description: #(
+            'You entered mansion frontyard.'
+            'There is a pavement leading to the back of the house and a wooden outbuilding on the right side.'
+            'You also notice 3 cars standing on a driveway: .'
+            ''
+        ).
+        mansion_frontyard addSearchable: porsche.
+        mansion_frontyard addSearchable: bmw.
+        mansion_frontyard addSearchable: jeep.
+
+        outbuilding := Location new.
+        outbuilding name: 'outbuilding'.
+        outbuilding description: #(
+            'You are inside of a wooden outbuilding. You notice a shelf,'
+            'there should be some tools around you.'
+            ''
+        ).
+        outbuilding addSearchable: shelf.
+
 
 
 
@@ -674,6 +762,19 @@ Object subclass: Game [
             direction: 'w';
             newLocation: containers.
 
+        "GATE FRONTYARD CONNECTION HERE"
+
+        mansion_frontyard_E_outbuilding := LocationsStandardConnection new.
+        mansion_frontyard_E_outbuilding
+            currentLocation: mansion_frontyard;
+            direction: 'e';
+            newLocation: outbuilding.
+
+        outbuilding_W_mansion_frontyard := LocationsStandardConnection new.
+        outbuilding_W_mansion_frontyard
+            currentLocation: outbuilding;
+            direction: 'w';
+            newLocation: mansion_frontyard.
 
 
         "Game state."
@@ -711,7 +812,9 @@ Object subclass: Game [
             construction_site_E_containers.
             containers_W_construction_site.
             containers_E_construction_site_east_gate.
-            construction_site_east_gate_W_containers
+            construction_site_east_gate_W_containers.
+            mansion_frontyard_E_outbuilding.
+            outbuilding_W_mansion_frontyard
         }.
 
         connection := possibleConnections
