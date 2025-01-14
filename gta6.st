@@ -282,49 +282,66 @@ Object subclass: Game [
     |
 
 
-      "Mission progress."
-      drill_mission
-      car_mission
-      weapon_mission
+        "Mission progress."
+        drill_mission
+        car_mission
+        weapon_mission
 
-      "Obtainable."
-      drill
-      barrow
-      beams
-      hammers
-      windows
+        "Obtainable."
+        drill
+        barrow
+        beams
+        hammers
+        windows
 
-      "Searchable"
-      blue_container
-      white_container
-      black_container
-      red_container
-      yellow_container
-      green_container
+        axe
+        crowbar
+        porsche_keys
+        bmw_keys
+        jeep_keys
 
-      "Places"
-      lobby
-      construction_site_south_gate
-      construction_site
-      containers
-      construction_site_east_gate
+        "Searchable"
+        blue_container
+        white_container
+        black_container
+        red_container
+        yellow_container
+        green_container
 
-      "Places connections."
-      construction_site_south_gate_N_construction_site
-      construction_site_S_construction_site_south_gate
-      construction_site_E_containers
-      containers_W_construction_site
-      containers_E_construction_site_east_gate
-      construction_site_east_gate_W_containers
 
-      worker
-      supervisor
+        neighbourhood
+        envelope
+        shelf
+        first_drawer
+        second_drawer
+        third_drawer
+        fourth_drawer
+        fifth_drawer
 
-      "Game state."
-      isGameOver
-      current_mission
-      location
-      has
+        "Places"
+        lobby
+        construction_site_south_gate
+        construction_site
+        containers
+        construction_site_east_gate
+        vinewood_hills
+
+        "Places connections."
+        construction_site_south_gate_N_construction_site
+        construction_site_S_construction_site_south_gate
+        construction_site_E_containers
+        containers_W_construction_site
+        containers_E_construction_site_east_gate
+        construction_site_east_gate_W_containers
+
+        worker
+        supervisor
+
+        "Game state."
+        isGameOver
+        current_mission
+        location
+        has
     |
 
     introductionText := #(
@@ -382,38 +399,122 @@ Object subclass: Game [
         windows := Obtainable new.
         windows name: 'windows'.
 
+        axe := Obtainable new.
+        axe name: 'axe'.
+
+        crowbar := Obtainable new.
+        crowbar name: 'crowbar'.
+
+        porsche_keys := Obtainable new.
+        porsche_keys name: 'porsche_keys'.
+        porsche_keys finishing: true.
+
+        bmw_keys := Obtainable new.
+        bmw_keys name: 'bmw_keys'.
+        bmw_keys finishing: true.
+
+        jeep_keys := Obtainable new.
+        jeep_keys name: 'jeep_keys'.
+        jeep_keys finishing: true.
+
 
 
         "Searchable"
         blue_container := Searchable new.
         blue_container name: 'blue_container'.
-        blue_container description: 'You search blue container and find: '.
+        blue_container description: #(
+            'You search blue container and find: '
+            ).
         blue_container addContent: drill.
 
-
         white_container := Searchable new.
-        white_container description: 'You search white container and find: '.
+        white_container description: #(
+            'You search white container and find: '
+            ).
         white_container name: 'white_container'.
 
         black_container := Searchable new.
         black_container name: 'black_container'.
-        black_container description: 'You search black container and find: '.
+        black_container description: #(
+            'You search black container and find: '
+            ).
         black_container addContent: beams.
 
         red_container := Searchable new.
         red_container name: 'red_container'.
-        red_container description: 'You search red container and find: '.
+        red_container description: #(
+            'You search red container and find: '
+            ).
         red_container addContent: hammers.
 
         yellow_container := Searchable new.
         yellow_container name: 'yellow_container'.
-        yellow_container description: 'You search yellow container and find: '.
+        yellow_container description: #(
+            'You search yellow container and find: '
+            ).
         yellow_container addContent: barrow.
 
         green_container := Searchable new.
         green_container name: 'green_container'.
-        green_container description: 'You search green container and find: '.
+        green_container description: #(
+            'You search green container and find: '
+            ).
         green_container addContent: windows.
+
+        neighbourhood := Searchable new.
+        neighbourhood name: 'neighbourhood'.
+        neighbourhood description: #(
+            'You notice an interesting pattern.'
+            'Every third house on the other side of the road has a blue roof, other ones have red roofs.'
+            'What''s more, houses with blue roof have a black-roofed house in front of them, other ones have green roofs.'
+            'You also notice that the leftmost house on the other side of the road has a blue roof and house number 1.'
+            'On one side on the road there are only even house numbers, on the other only odd'
+            ).
+
+        envelope := Searchable new.
+        envelope name: 'envelope'.
+        envelope description: #(
+            'Dear residents of Mayfair St.'
+            'Due to scheduled replacement of intercoms in upcoming week, we kindly inform you, '
+            'that access password to mansion gate will be changed to combination of your mansion''s'
+            'roof colour and address'' number(example: black1234).'
+            'We are sorry for the inconvenience'
+            'Best regards'
+            'VH housing'
+            ).
+
+        first_drawer := Searchable new.
+        first_drawer name: 'first_drawer'.
+        first_drawer description: #(
+            'You take a look inside the first drawer'
+            ).
+
+        second_drawer := Searchable new.
+        second_drawer name: 'second_drawer'.
+        second_drawer description: #(
+            'You take a look inside the second drawer'
+            ).
+
+        third_drawer := Searchable new.
+        third_drawer name: 'third_drawer'.
+        third_drawer description: #(
+            'You take a look inside the third drawer'
+            ).
+        third_drawer addContent: porsche_keys.
+
+        fourth_drawer := Searchable new.
+        fourth_drawer name: 'third_drawer'.
+        fourth_drawer description: #(
+            'You take a look inside the fourth drawer'
+            ).
+        fourth_drawer addContent: bmw_keys.
+
+        fifth_drawer := Searchable new.
+        fifth_drawer name: 'third_drawer'.
+        fifth_drawer description: #(
+            'You take a look inside the fifth drawer'
+            ).
+        fifth_drawer addContent: jeep_keys.
 
 
 
@@ -427,6 +528,8 @@ Object subclass: Game [
         worker
             name: 'worker';
             message: 'Check out this building, it''s beautiful, isn''t it? I can''t wait till we finish it!'.
+
+
 
         "Places."
         lobby := Location new.
@@ -484,6 +587,21 @@ Object subclass: Game [
         ).
         construction_site_east_gate finishing: true.
 
+        vinewood_hills := Location new.
+        vinewood_hills name: 'vinewood_hills'.
+        vinewood_hills description: #(
+            'You are in front of a luxury mansion in expensive neighbourhood of Los Santos - Vinewood Hills.'
+            'There is a closed gate, that requires a password.'
+            'You look around the neighbourhood and notice, that number of the house to the left is 18, '
+            'and a mailbox with an envelope sticking out of it.'
+            'Find keys to the car you want to steal, take them and go to the choosen car, then you can finish mission'
+            ''
+        ).
+        vinewood_hills addSearchable: neighbourhood.
+        vinewood_hills addSearchable: envelope.
+
+
+
         "Mission progress."
         drill_mission := Mission new.
         drill_mission
@@ -495,7 +613,7 @@ Object subclass: Game [
         car_mission
             name: 'car';
             finished: false;
-            startLocation: construction_site_south_gate.
+            startLocation: vinewood_hills.
 
         weapon_mission := Mission new.
         weapon_mission
@@ -616,10 +734,10 @@ Object subclass: Game [
 
                 items isEmpty
                     ifTrue: [
-                        self printLines: #('There is nothing inside.' '')
+                        self printLines: searchable description.
                     ]
                     ifFalse: [
-                        Transcript show: searchable description; cr.
+                        self printLines: searchable description.
                         items do: [:item |
                             Transcript show: item asString; cr.
                             location addThing: item.
