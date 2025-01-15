@@ -313,6 +313,26 @@ LocationsConnection subclass: LocationsLeavingConnection [
 ].
 
 
+LocationsConnection subclass: LocationsToolConnection [
+    | middle tool |
+
+    middle: aSearchable [
+        middle := aSearchable
+    ]
+
+    middle [
+        ^ middle
+    ]
+
+    tool: anObtainable [
+        tool := anObtainable
+    ]
+
+    tool [
+        ^ tool
+    ]
+].
+
 
 Object subclass: Game [
     |
@@ -352,6 +372,7 @@ Object subclass: Game [
         bmw
         jeep
         shelf
+        window
         first_drawer
         second_drawer
         third_drawer
@@ -373,6 +394,7 @@ Object subclass: Game [
         terrace
         pool
         garden
+        kitchen
 
 
         "Places connections."
@@ -396,6 +418,8 @@ Object subclass: Game [
         terrace_E_mansion_backyard
         mansion_backyard_E_pool
         pool_W_mansion_backyard
+        terrace_crowbar_kitchen
+        kitchen_leave_terrace
 
 
         "NPCs"
@@ -573,6 +597,13 @@ Object subclass: Game [
             'A quick SUV, capable of driving through more remote terrain.'
             ).
 
+        window := Searchable new.
+        window name: 'window'.
+        window description: #(
+            'The window is half- opened. You can’t go through it.'
+            'Maybe you can find some useful tools to help yourself with opening it?'
+            ).
+
         shelf := Searchable new.
         shelf name: 'shelf'.
         shelf description: #(
@@ -601,14 +632,14 @@ Object subclass: Game [
         third_drawer addContent: porsche_keys.
 
         fourth_drawer := Searchable new.
-        fourth_drawer name: 'third_drawer'.
+        fourth_drawer name: 'fourth_drawer'.
         fourth_drawer description: #(
             'You take a look inside the fourth drawer'
             ).
         fourth_drawer addContent: bmw_keys.
 
         fifth_drawer := Searchable new.
-        fifth_drawer name: 'third_drawer'.
+        fifth_drawer name: 'fifth_drawer'.
         fifth_drawer description: #(
             'You take a look inside the fifth drawer'
             ).
@@ -710,6 +741,8 @@ Object subclass: Game [
         mansion_frontyard addSearchable: porsche.
         mansion_frontyard addSearchable: bmw.
         mansion_frontyard addSearchable: jeep.
+        mansion_frontyard finishing: true.
+
 
         outbuilding := Location new.
         outbuilding name: 'outbuilding'.
@@ -734,6 +767,7 @@ Object subclass: Game [
             'You take a closer look at the terrace.'
             ''
         ).
+        terrace addSearchable: window.
 
         pool := Location new.
         pool name: 'pool'.
@@ -751,6 +785,20 @@ Object subclass: Game [
             'It''s symmetrically arranged around central fountain.'
             ''
         ).
+
+        kitchen := Location new.
+        kitchen name: 'kitchen'.
+        kitchen description: #(
+            'You entered the kitchen inside the mansion'
+            'You notice it has 5 drawers right at the enterance...'
+            ''
+        ).
+        kitchen addSearchable: first_drawer.
+        kitchen addSearchable: second_drawer.
+        kitchen addSearchable: third_drawer.
+        kitchen addSearchable: fourth_drawer.
+        kitchen addSearchable: fifth_drawer.
+
 
 
 
@@ -893,6 +941,18 @@ Object subclass: Game [
             direction: 'w';
             newLocation: mansion_backyard.
 
+        terrace_crowbar_kitchen := LocationsToolConnection new.
+        terrace_crowbar_kitchen
+            currentLocation: terrace;
+            middle: window;
+            tool: crowbar;
+            newLocation: kitchen.
+
+        kitchen_leave_terrace := LocationsLeavingConnection new.
+        kitchen_leave_terrace
+            currentLocation: kitchen;
+            newLocation: terrace.
+
 
 
         "Game state."
@@ -993,11 +1053,52 @@ Object subclass: Game [
     ]
 
 
+    break_in: middle tool: tool [
+        | possibleConnections connection equipment locationName |
+
+        (has = 'nothing')
+            ifTrue: [
+                Transcript show: 'Unable to break in '; cr; cr.
+                ^ self
+            ].
+
+        possibleConnections := {
+            terrace_crowbar_kitchen
+        }.
+
+        equipment := has name.
+        locationName := location name.
+
+        connection := possibleConnections
+            detect: [ :c |
+                (c currentLocation name = locationName) and: [
+                    (c middle name = middle) and: [
+                        (c tool name = equipment)
+                    ]
+                ]
+            ]
+            ifNone: [ nil ].
+
+        connection
+            ifNil: [
+                self printLines: #('Unable to break in.' '')
+            ]
+            ifNotNil: [
+                self drop.
+                location := connection newLocation.
+                self look.
+            ].
+    ]
+
+
+
+
     leave [
         | possibleConnections connection |
 
         possibleConnections := {
-            mansion_frontyard_leave_vinewood_hills
+            mansion_frontyard_leave_vinewood_hills.
+            kitchen_leave_terrace
         }.
 
         "Sprawdź, czy istnieje połączenie z bieżącej lokalizacji"
@@ -1228,6 +1329,13 @@ Object subclass: Game [
                 secondArgument := parts second.
                 thirdArgument := parts third.
                 self open: secondArgument code: thirdArgument.
+                isUnknown := false
+            ].
+
+            (parts size = 3 and: [ parts first = 'break_in' ]) ifTrue: [
+                secondArgument := parts second.
+                thirdArgument := parts third.
+                self break_in: secondArgument tool: thirdArgument.
                 isUnknown := false
             ].
 
