@@ -369,6 +369,10 @@ Object subclass: Game [
         vinewood_hills
         mansion_frontyard
         outbuilding
+        mansion_backyard
+        terrace
+        pool
+        garden
 
 
         "Places connections."
@@ -383,6 +387,15 @@ Object subclass: Game [
         mansion_frontyard_leave_vinewood_hills
         mansion_frontyard_E_outbuilding
         outbuilding_W_mansion_frontyard
+        mansion_frontyard_N_mansion_backyard
+        mansion_backyard_S_mansion_frontyard
+        terrace_E_mansion_backyard
+        mansion_backyard_N_garden
+        garden_S_mansion_backyard
+        mansion_backyard_W_terrace
+        terrace_E_mansion_backyard
+        mansion_backyard_E_pool
+        pool_W_mansion_backyard
 
 
         "NPCs"
@@ -707,6 +720,40 @@ Object subclass: Game [
         ).
         outbuilding addSearchable: shelf.
 
+        mansion_backyard := Location new.
+        mansion_backyard name: 'mansion_backyard'.
+        mansion_backyard description: #(
+            'You silently walk around the house and get to the backyard.'
+            'You notice an outdoor swimming pool on your right, a cozy garden in front of you and a terrace on the left.'
+            ''
+        ).
+
+        terrace := Location new.
+        terrace name: 'terrace'.
+        terrace description: #(
+            'You take a closer look at the terrace.'
+            ''
+        ).
+
+        pool := Location new.
+        pool name: 'pool'.
+        pool description: #(
+            'You see a oval-shaped pool with sunbeds in front of it.'
+            'There is also a breathtaking view at downtown Los Santos from here.'
+            'Owner of this house must be really living the life!'
+            ''
+        ).
+
+        garden := Location new.
+        garden name: 'garden'.
+        garden description: #(
+            'The garden has freshly cut lawns and vibrant flowerbeds.'
+            'It''s symmetrically arranged around central fountain.'
+            ''
+        ).
+
+
+
 
 
 
@@ -792,6 +839,61 @@ Object subclass: Game [
             direction: 'w';
             newLocation: mansion_frontyard.
 
+        mansion_frontyard_N_mansion_backyard := LocationsStandardConnection new.
+        mansion_frontyard_N_mansion_backyard
+            currentLocation: mansion_frontyard;
+            direction: 'n';
+            newLocation: mansion_backyard.
+
+        mansion_backyard_S_mansion_frontyard := LocationsStandardConnection new.
+        mansion_backyard_S_mansion_frontyard
+            currentLocation: mansion_backyard;
+            direction: 's';
+            newLocation: mansion_frontyard.
+
+        terrace_E_mansion_backyard := LocationsStandardConnection new.
+        terrace_E_mansion_backyard
+            currentLocation: terrace;
+            direction: 'e';
+            newLocation: mansion_backyard.
+
+        mansion_backyard_N_garden := LocationsStandardConnection new.
+        mansion_backyard_N_garden
+            currentLocation: mansion_backyard;
+            direction: 'n';
+            newLocation: garden.
+
+        garden_S_mansion_backyard := LocationsStandardConnection new.
+        garden_S_mansion_backyard
+            currentLocation: garden;
+            direction: 's';
+            newLocation: mansion_backyard.
+
+        mansion_backyard_W_terrace := LocationsStandardConnection new.
+        mansion_backyard_W_terrace
+            currentLocation: mansion_backyard;
+            direction: 'w';
+            newLocation: terrace.
+
+        terrace_E_mansion_backyard := LocationsStandardConnection new.
+        terrace_E_mansion_backyard
+            currentLocation: terrace;
+            direction: 'e';
+            newLocation: mansion_backyard.
+
+        mansion_backyard_E_pool := LocationsStandardConnection new.
+        mansion_backyard_E_pool
+            currentLocation: mansion_backyard;
+            direction: 'e';
+            newLocation: pool.
+
+        pool_W_mansion_backyard := LocationsStandardConnection new.
+        pool_W_mansion_backyard
+            currentLocation: pool;
+            direction: 'w';
+            newLocation: mansion_backyard.
+
+
 
         "Game state."
         isGameOver := false.
@@ -831,7 +933,16 @@ Object subclass: Game [
             containers_E_construction_site_east_gate.
             construction_site_east_gate_W_containers.
             mansion_frontyard_E_outbuilding.
-            outbuilding_W_mansion_frontyard
+            outbuilding_W_mansion_frontyard.
+            mansion_frontyard_N_mansion_backyard.
+            mansion_backyard_S_mansion_frontyard.
+            terrace_E_mansion_backyard.
+            mansion_backyard_N_garden.
+            garden_S_mansion_backyard.
+            mansion_backyard_W_terrace.
+            terrace_E_mansion_backyard.
+            mansion_backyard_E_pool.
+            pool_W_mansion_backyard
         }.
 
         connection := possibleConnections
@@ -912,7 +1023,6 @@ Object subclass: Game [
     examine: searchableName [
         | searchable items |
 
-        "Znajdź obiekt Searchable o podanej nazwie w bieżącej lokalizacji."
         searchable := location searchable
             detect: [:aSearchable | aSearchable name = searchableName ]
             ifNone: [ nil ].
