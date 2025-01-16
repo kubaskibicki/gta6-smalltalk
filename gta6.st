@@ -1247,14 +1247,12 @@ Object subclass: Game [
             secret_room_leave_gang_hideout
         }.
 
-        "Sprawdź, czy istnieje połączenie z bieżącej lokalizacji"
         connection := possibleConnections
             detect: [ :c |
                 c currentLocation name = location name
             ]
             ifNone: [ nil ].
 
-        "Jeśli takie połączenie istnieje, przenieś gracza do nowej lokalizacji"
         connection
             ifNil: [
                 self printLines: #('You cannot leave this location.' '')
@@ -1426,6 +1424,17 @@ Object subclass: Game [
     ]
 
 
+    finish_game [
+        (drill_mission finished and: [ car_mission finished and: [ weapon_mission finished ] ])
+            ifTrue: [
+                Transcript show: 'You completed the game'; cr; cr.
+            ]
+            ifFalse: [
+                Transcript show: 'You need to finish all missions to finish the game'; cr; cr.
+            ].
+    ]
+
+
     choose_mission: missionName [
         (location name = 'lobby')
             ifFalse: [
@@ -1552,6 +1561,11 @@ Object subclass: Game [
             cmd = 'e' ifTrue: [
                 self move: 'e'.
                 isUnknown := false
+            ].
+
+            cmd = 'finish_game' ifTrue: [
+                self finish_game.
+                isUnknown := false.
             ].
 
             cmd = 'leave' ifTrue: [
