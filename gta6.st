@@ -356,6 +356,14 @@ Object subclass: Game [
         bmw_keys
         jeep_keys
 
+        key_7
+        key_8
+        key_9
+        knife
+        rifle
+        handgun
+        pepper_spray
+
 
         "Searchable"
         blue_container
@@ -379,6 +387,12 @@ Object subclass: Game [
         fourth_drawer
         fifth_drawer
 
+        table
+        lamp
+        painting
+        door
+        safe
+
 
         "Places"
         lobby
@@ -395,6 +409,10 @@ Object subclass: Game [
         pool
         garden
         kitchen
+
+        gang_hideout
+        safe_interior
+        secret_room
 
 
         "Places connections."
@@ -420,6 +438,11 @@ Object subclass: Game [
         pool_W_mansion_backyard
         terrace_crowbar_kitchen
         kitchen_leave_terrace
+
+        gang_hideout_1893_safe_interior
+        safe_interior_leave_gang_hideout
+        gang_hideout_key_7_secret_room
+        secret_room_leave_gang_hideout
 
 
         "NPCs"
@@ -506,6 +529,30 @@ Object subclass: Game [
         jeep_keys := Obtainable new.
         jeep_keys name: 'jeep_keys'.
         jeep_keys finishing: true.
+
+        key_7 := Obtainable new.
+        key_7 name: 'key_7'.
+
+        key_8 := Obtainable new.
+        key_8 name: 'key_8'.
+
+        key_9 := Obtainable new.
+        key_9 name: 'key_9'.
+
+        rifle := Obtainable new.
+        rifle name: 'rifle'.
+        rifle finishing: true.
+
+        handgun := Obtainable new.
+        handgun name: 'handgun'.
+        handgun finishing: true.
+
+        knife := Obtainable new.
+        knife name: 'knife'.
+
+        pepper_spray := Obtainable new.
+        pepper_spray name: 'pepper_spray'.
+
 
 
 
@@ -644,6 +691,44 @@ Object subclass: Game [
             'You take a look inside the fifth drawer'
             ).
         fifth_drawer addContent: jeep_keys.
+
+        table := Searchable new.
+        table name: 'table'.
+        table description: #(
+            'You take a closer look at the table.'
+            'You notice playing cards, empty liquor bottles and a mirror'
+            'with suspiciously looking white powder spilled on it.'
+            ).
+
+        lamp := Searchable new.
+        lamp name: 'lamp'.
+        lamp description: #(
+            'You pick up the lamp.'
+            'There''s nothing special about it, however when you''re about to put it'
+            'back, you notice a small note hidden under it.'
+            'THE YEAR THE PAINTING WAS CREATED'
+            ).
+
+        painting := Searchable new.
+        painting name: 'painting'.
+        painting description: #(
+            'After taking a closer look at the painting you identify'
+            'it as replica of “The Scream” by Edvard Munch.'
+            ).
+
+        door := Searchable new.
+        door name: 'door'.
+        door description: #(
+            'You take a closer look at closed door to your left.'
+            'You cannot get through, you need to find a key to open them.'
+            ).
+
+        safe := Searchable new.
+        safe name: 'safe'.
+        safe description: #(
+            'You take a closer look at closed safe bulit into the wall'
+            'It has an encrypted lock'
+            ).
 
 
 
@@ -799,10 +884,47 @@ Object subclass: Game [
         kitchen addSearchable: fourth_drawer.
         kitchen addSearchable: fifth_drawer.
 
+        gang_hideout := Location new.
+        gang_hideout name: 'gang_hideout'.
+        gang_hideout description: #(
+            'You arrive at the gang hideout.'
+            'It’s a middle-sized room with a table in the middle, few chairs and sofas around it.'
+            'You also notice a table in the corner with a lamp on it and closed door to your left.'
+            'You turn it on and notice a painting and smoke in the air.'
+            'Someone must have been here recently. Search the place and find a weapon.'
+            ''
+        ).
+        gang_hideout addSearchable: table.
+        gang_hideout addSearchable: lamp.
+        gang_hideout addSearchable: painting.
+        gang_hideout addSearchable: door.
+        gang_hideout addSearchable: safe.
+        gang_hideout finishing: true.
 
+        safe_interior := Location new.
+        safe_interior name: 'safe_interior'.
+        safe_interior description: #(
+            'It occurs that safe was only an entrance to a hidden room.'
+            'You notice 3 keys hanging on the wall in fornt of you with labels: key 7, key 8, key 9'
+            'You also see a poster on wall on your left.'
+            ''
+        ).
+        safe_interior addThing: key_7.
+        safe_interior addThing: key_8.
+        safe_interior addThing: key_9.
 
-
-
+        secret_room := Location new.
+        secret_room name: 'secret_room'.
+        secret_room description: #(
+            'You entered the gang''s weapon magazine.'
+            'You notice a gun cabinet with various weapons inside'
+            ''
+        ).
+        secret_room addThing: rifle.
+        secret_room addThing: handgun.
+        secret_room addThing: knife.
+        secret_room addThing: pepper_spray.
+        secret_room finishing: true.
 
 
         "Mission progress."
@@ -822,8 +944,7 @@ Object subclass: Game [
         weapon_mission
             name: 'weapon';
             finished: false;
-            startLocation: construction_site_south_gate.
-
+            startLocation: gang_hideout.
 
 
         "Connections."
@@ -953,6 +1074,29 @@ Object subclass: Game [
             currentLocation: kitchen;
             newLocation: terrace.
 
+        gang_hideout_1893_safe_interior := LocationsPasswordConnection new.
+        gang_hideout_1893_safe_interior
+            currentLocation: gang_hideout;
+            password: '1893';
+            middle: safe;
+            newLocation: safe_interior.
+
+        safe_interior_leave_gang_hideout := LocationsLeavingConnection new.
+        safe_interior_leave_gang_hideout
+            currentLocation: safe_interior;
+            newLocation: gang_hideout.
+
+        gang_hideout_key_7_secret_room := LocationsToolConnection new.
+        gang_hideout_key_7_secret_room
+            currentLocation: gang_hideout;
+            middle: door;
+            tool: key_7;
+            newLocation: secret_room.
+
+        secret_room_leave_gang_hideout := LocationsLeavingConnection new.
+        secret_room_leave_gang_hideout
+            currentLocation: secret_room;
+            newLocation: gang_hideout.
 
 
         "Game state."
@@ -1027,7 +1171,8 @@ Object subclass: Game [
         | possibleConnections connection |
 
         possibleConnections := {
-            vinewood_hills_black20_mansion_frontyard
+            vinewood_hills_black20_mansion_frontyard.
+            gang_hideout_1893_safe_interior
         }.
 
         connection := possibleConnections
@@ -1063,7 +1208,8 @@ Object subclass: Game [
             ].
 
         possibleConnections := {
-            terrace_crowbar_kitchen
+            terrace_crowbar_kitchen.
+            gang_hideout_key_7_secret_room
         }.
 
         equipment := has name.
@@ -1091,14 +1237,14 @@ Object subclass: Game [
     ]
 
 
-
-
     leave [
         | possibleConnections connection |
 
         possibleConnections := {
             mansion_frontyard_leave_vinewood_hills.
-            kitchen_leave_terrace
+            kitchen_leave_terrace.
+            safe_interior_leave_gang_hideout.
+            secret_room_leave_gang_hideout
         }.
 
         "Sprawdź, czy istnieje połączenie z bieżącej lokalizacji"
