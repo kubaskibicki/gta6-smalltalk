@@ -1,0 +1,136 @@
+Object
+│
+├── Mission
+│   ├── Properties:
+│   │   - name
+│   │   - finished
+│   │   - startLocation
+│   └── Methods:
+│       - name: aName
+│       - finished: aBoolean
+│       - startLocation: aLocation
+│       - asString
+│
+├── Npc
+│   ├── Properties:
+│   │   - name
+│   │   - message
+│   └── Methods:
+│       - name: aName
+│       - message: aMessage
+│       - asString
+│
+├── Obtainable
+│   ├── Properties:
+│   │   - name
+│   │   - finishing
+│   └── Methods:
+│       - name: aName
+│       - finishing: aBoolean
+│       - initialize
+│       - asString
+│       - Obtainable class >> new
+│
+├── Searchable
+│   ├── Properties:
+│   │   - name
+│   │   - content
+│   │   - description
+│   └── Methods:
+│       - name: aName
+│       - description: aDescription
+│       - content: aCollection
+│       - initialize
+│       - addContent: anObtainable
+│       - removeThing: anObtainable
+│       - listObtainable
+│       - asString
+│       - Searchable class >> new
+│
+├── Location
+│   ├── Properties:
+│   │   - name
+│   │   - description
+│   │   - searchable
+│   │   - obtainable
+│   │   - askable
+│   │   - finishing
+│   └── Methods:
+│       - name: aString
+│       - description: newDesc
+│       - initialize
+│       - addSearchable: aSearchable
+│       - removeSearchable: aSearchable
+│       - listSearchable
+│       - addThing: anObtainable
+│       - removeThing: anObtainable
+│       - listObtainable
+│       - listAskable
+│       - addAskable: anNpc
+│       - Location class >> new
+│
+├── LocationsConnection
+│   ├── Properties:
+│   │   - currentLocation
+│   │   - newLocation
+│   └── Methods:
+│       - currentLocation: aLocation
+│       - newLocation: aLocation
+│
+│       ├── LocationsStandardConnection
+│       │   ├── Properties:
+│       │   │   - direction
+│       │   └── Methods:
+│       │       - direction: aDirection
+│
+│       ├── LocationsPasswordConnection
+│       │   ├── Properties:
+│       │   │   - password
+│       │   │   - middle
+│       │   └── Methods:
+│       │       - password: aPassword
+│       │       - middle: aSearchable
+│
+│       ├── LocationsToolConnection
+│       │   ├── Properties:
+│       │   │   - middle
+│       │   │   - tool
+│       │   └── Methods:
+│       │       - middle: aSearchable
+│       │       - tool: anObtainable
+│
+│       └── LocationsLeavingConnection
+│           ├── No unique properties or methods.
+│
+└── Game
+    ├── Properties:
+    │   - drill_mission
+    │   - car_mission
+    │   - weapon_mission
+    │   - Obtainable items (e.g., drill, crowbar, rifle, etc.)
+    │   - Searchable objects (e.g., containers, drawers, safe, etc.)
+    │   - Locations (e.g., lobby, mansion, gang_hideout, etc.)
+    │   - NPCs (e.g., supervisor, worker)
+    │   - isGameOver
+    │   - current_mission
+    │   - location
+    │   - has
+    └── Methods:
+        - init
+        - printLines: anArray
+        - printIntroduction
+        - printInstructions
+        - readCommand
+        - move: aDirection
+        - open: middle code: code
+        - break_in: middle tool: tool
+        - leave
+        - examine: searchableName
+        - take: itemName
+        - drop
+        - look
+        - ask: aNpcName
+        - finish_mission
+        - finish_game
+        - choose_mission: missionName
+        - run
